@@ -16,12 +16,21 @@ interface Props {
   settings: Settings;
   voices: SpeechSynthesisVoice[];
   onClose: () => void;
+  /** Player chose "Continue without sound" this visit: all speech is off. */
+  muted: boolean;
+  onUnmute: () => void;
 }
 
 const sample = () =>
   COLORS[COLOR_ORDER[Math.floor(Math.random() * COLOR_ORDER.length)]].name;
 
-export function SoundbotPanel({ settings, voices, onClose }: Props) {
+export function SoundbotPanel({
+  settings,
+  voices,
+  onClose,
+  muted,
+  onUnmute,
+}: Props) {
   const sb = settings.soundbot;
   const ref = useRef<HTMLDivElement>(null);
   const supported = speechSupported();
@@ -68,6 +77,15 @@ export function SoundbotPanel({ settings, voices, onClose }: Props) {
 
         <hr />
 
+        {muted && (
+          <p className="warn" style={{ marginBottom: 12 }}>
+            Sound is off for this visit, so the voice can&apos;t play.{" "}
+            <button className="act act-quiet" onClick={onUnmute}>
+              <u>Turn sound on</u>
+            </button>
+          </p>
+        )}
+
         {!supported && (
           <p className="warn">This browser can&apos;t speak. The voice is unavailable.</p>
         )}
@@ -95,10 +113,12 @@ export function SoundbotPanel({ settings, voices, onClose }: Props) {
                 />
                 <span>
                   <span className="choice-name">{p.name}</span>
-                  <span className="choice-tag">{p.tagline}</span>
+                  <span className="choice-tag">
+                    {p.tagline} ({p.lang})
+                  </span>
                 </span>
                 <span className={`choice-voice ${v ? "is-found" : ""}`}>
-                  {v ? v.name : "default voice, retuned"}
+                  {v ? "on this device" : "not on this device: default voice"}
                 </span>
               </label>
             );
@@ -114,7 +134,7 @@ export function SoundbotPanel({ settings, voices, onClose }: Props) {
               <span className="choice-name">Custom</span>
               <span className="choice-tag">Any installed voice, your tuning.</span>
             </span>
-            <span className="choice-voice">{voices.length} found</span>
+            <span className="choice-voice">{voices.length} on this device</span>
           </label>
         </fieldset>
 
@@ -185,7 +205,7 @@ export function SoundbotPanel({ settings, voices, onClose }: Props) {
           <button
             className="act"
             onClick={preview}
-            disabled={!sb.enabled || !supported}
+            disabled={!sb.enabled || !supported || muted}
           >
             ▶ Test voice
           </button>

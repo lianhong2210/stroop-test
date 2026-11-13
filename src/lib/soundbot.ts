@@ -14,6 +14,8 @@ export interface Persona {
   tagline: string;
   /** Matched case-insensitively against voice names, in order of preference. */
   candidates: string[];
+  /** Preferred language tag, e.g. "en-ZA"; used to pick between same-named voices. */
+  lang?: string;
   pitch: number;
   rate: number;
   fallbackPitch: number;
@@ -21,83 +23,77 @@ export interface Persona {
   volume?: number;
 }
 
+/**
+ * The six reading voices. They are Apple system voices (macOS / iOS), so they
+ * exist only on Apple devices. Elsewhere each option falls back to the
+ * device's default voice, retuned so the six still sound different.
+ */
 export const PERSONAS: Persona[] = [
   {
-    id: "proctor",
-    name: "Proctor",
-    tagline: "Calm, clinical, patient.",
-    candidates: [
-      "Samantha",
-      "Google US English",
-      "Microsoft Aria",
-      "Microsoft Jenny",
-      "Microsoft Zira",
-      "Allison",
-      "Ava",
-      "Karen",
-    ],
+    id: "samantha",
+    name: "Samantha",
+    tagline: "American English",
+    candidates: ["Samantha"],
+    lang: "en-US",
     pitch: 1,
-    rate: 1.1,
-    fallbackPitch: 1,
-    fallbackRate: 1.1,
-  },
-  {
-    id: "warden",
-    name: "Warden",
-    tagline: "Low, flat, unimpressed.",
-    candidates: [
-      "Daniel",
-      "Google UK English Male",
-      "Microsoft Guy",
-      "Microsoft Ryan",
-      "Microsoft David",
-      "Alex",
-      "Tom",
-      "Reed",
-    ],
-    pitch: 0.7,
-    rate: 1.0,
-    fallbackPitch: 0.5,
-    fallbackRate: 1.0,
-  },
-  {
-    id: "nurse",
-    name: "Nurse",
-    tagline: "Sweet. Far too sweet.",
-    candidates: [
-      "Moira",
-      "Tessa",
-      "Google UK English Female",
-      "Microsoft Libby",
-      "Microsoft Sonia",
-      "Serena",
-      "Kate",
-      "Shelley",
-    ],
-    pitch: 1.35,
     rate: 1.05,
-    fallbackPitch: 1.65,
+    fallbackPitch: 1.05,
     fallbackRate: 1.05,
   },
   {
-    id: "machine",
-    name: "Machine",
-    tagline: "The test apparatus speaks.",
-    candidates: ["Zarvox", "Trinoids", "Ralph", "Fred"],
+    id: "tessa",
+    name: "Tessa",
+    tagline: "South African English",
+    candidates: ["Tessa"],
+    lang: "en-ZA",
     pitch: 1,
     rate: 1.05,
-    fallbackPitch: 0.1,
-    fallbackRate: 1.15,
+    fallbackPitch: 1.2,
+    fallbackRate: 1.05,
   },
   {
-    id: "dirge",
-    name: "Dirge",
-    tagline: "Sung, slowly, off-key.",
-    candidates: ["Bad News", "Cellos", "Organ", "Bells"],
+    id: "moira",
+    name: "Moira",
+    tagline: "Irish English",
+    candidates: ["Moira"],
+    lang: "en-IE",
     pitch: 1,
-    rate: 1.2,
-    fallbackPitch: 0.15,
-    fallbackRate: 0.8,
+    rate: 1.05,
+    fallbackPitch: 1.35,
+    fallbackRate: 1,
+  },
+  {
+    id: "karen",
+    name: "Karen",
+    tagline: "Australian English",
+    candidates: ["Karen"],
+    lang: "en-AU",
+    pitch: 1,
+    rate: 1.05,
+    fallbackPitch: 0.95,
+    fallbackRate: 1.1,
+  },
+  {
+    id: "daniel",
+    name: "Daniel",
+    tagline: "British English",
+    candidates: ["Daniel"],
+    lang: "en-GB",
+    pitch: 1,
+    rate: 1.05,
+    fallbackPitch: 0.7,
+    fallbackRate: 1,
+  },
+  {
+    id: "fred",
+    name: "Fred",
+    tagline: "American English, classic synthesiser",
+    candidates: ["Fred"],
+    lang: "en-US",
+    pitch: 1,
+    rate: 1.05,
+    fallbackPitch: 0.4,
+    fallbackRate: 1.05,
   },
 ];
 
@@ -173,9 +169,14 @@ export function findPersonaVoice(
   voices: SpeechSynthesisVoice[],
   persona: Persona,
 ): SpeechSynthesisVoice | null {
+  const lang = persona.lang?.toLowerCase().replace("_", "-");
   for (const c of persona.candidates) {
     const needle = c.toLowerCase();
-    const hit = voices.find((v) => v.name.toLowerCase().startsWith(needle));
+    const named = voices.filter((v) => v.name.toLowerCase().startsWith(needle));
+    const hit =
+      (lang &&
+        named.find((v) => v.lang.toLowerCase().replace("_", "-") === lang)) ||
+      named[0];
     if (hit) return hit;
   }
   return null;
@@ -214,6 +215,33 @@ export function resolveVoice(
       };
 }
 
+/**
+ * Hand an utterance to the browser. Chrome can silently drop an utterance
+ * queued straight after cancel(), so only cancel when something is actually
+ * playing, and give the engine a moment before speaking again. When idle we
+ * speak immediately, which keeps the call inside the user's tap (iOS needs it).
+ */
+function play(synth: SpeechSynthesis, u: SpeechSynthesisUtterance) {
+  const prevError = u.onerror;
+  u.onerror = function (e) {
+    if (e.error !== "interrupted" && e.error !== "canceled") {
+      console.warn("[speech] utterance failed:", e.error);
+    }
+    prevError?.call(this, e);
+  };
+  if (synth.speaking || synth.pending) {
+    synth.cancel();
+    setTimeout(() => synth.speak(u), 80);
+  } else {
+    if (synth.paused) synth.resume();
+    synth.speak(u);
+  }
+}
+
+export function isSpeechMuted() {
+  return muted;
+}
+
 export function speak(
   text: string,
   cfg: SoundbotSettings,
@@ -224,8 +252,6 @@ export function speak(
   const synth = window.speechSynthesis;
   const r = resolveVoice(voices, cfg);
   // Never let words queue up behind each other: the newest stimulus wins.
-  synth.cancel();
-  synth.resume();
   const u = new SpeechSynthesisUtterance(text.toLowerCase());
   if (r.voice) {
     u.voice = r.voice;
@@ -236,7 +262,7 @@ export function speak(
   u.pitch = r.pitch;
   u.rate = r.rate;
   u.volume = Math.max(0, Math.min(1, cfg.volume * r.volume));
-  synth.speak(u);
+  play(synth, u);
 }
 
 /* ---------- the Doctor (results narrator) ---------- */
@@ -271,8 +297,6 @@ export function speakNarration(
   if (muted || !hasSpeech()) return;
   const synth = window.speechSynthesis;
   const voice = findPersonaVoice(voices, DOCTOR);
-  synth.cancel();
-  synth.resume();
   const u = new SpeechSynthesisUtterance(text);
   if (voice) {
     u.voice = voice;
@@ -286,7 +310,7 @@ export function speakNarration(
   u.onstart = () => hooks.onStart?.();
   u.onend = () => hooks.onEnd?.();
   u.onerror = () => hooks.onEnd?.();
-  synth.speak(u);
+  play(synth, u);
 }
 
 export function silence() {

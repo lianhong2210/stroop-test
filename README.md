@@ -80,16 +80,19 @@ Best scores and passed modes are saved on your device.
 
 Every round, a voice reads the **printed word**, never the ink. It's there to mislead you. Choose who reads from **Voice** on the menu:
 
-| Voice | Character | Preferred system voices |
-| --- | --- | --- |
-| Proctor | Calm, clinical, patient | Samantha, Google US English, Microsoft Aria/Jenny/Zira, … |
-| Warden | Low, flat, unimpressed | Daniel, Google UK English Male, Microsoft Guy/Ryan/David, … |
-| Nurse | Sweet. Far too sweet | Moira, Tessa, Google UK English Female, Microsoft Libby/Sonia, … |
-| Machine | The test apparatus speaks | Zarvox, Trinoids, Ralph, Fred |
-| Dirge | Sung, slowly, off-key | Bad News, Cellos, Organ, Bells |
-| Custom | Any installed voice, your tuning | pick any English voice, set pitch and speed |
+| Voice | Accent |
+| --- | --- |
+| Samantha (default) | American English (en-US) |
+| Tessa | South African English (en-ZA) |
+| Moira | Irish English (en-IE) |
+| Karen | Australian English (en-AU) |
+| Daniel | British English (en-GB) |
+| Fred | American English, classic synthesiser (en-US) |
+| Custom | Any voice installed on your device, with pitch and speed sliders |
 
-The voices come from your operating system, so each device offers a different set. When none of a voice's preferred voices exist, the game reshapes the default voice with pitch and speed so it still sounds distinct. You can also change the volume or switch the voice off.
+The game uses the browser's built-in speech, so the voices are the ones your device already has. These six are Apple system voices: they are present on Macs, iPhones and iPads, but not on Android or Windows. The voice form marks each one as "on this device" or "not on this device". When a voice is missing, the game uses the device's default voice instead, retuned in pitch and speed so the six options still sound different from each other. You can also change the volume or switch the voice off.
+
+> The voices aren't bundled as audio files. Apple's licence for its system voices doesn't allow recording them for distribution. Making every device sound identical would need clips from a voice whose licence allows redistribution.
 
 ## Look and sound
 

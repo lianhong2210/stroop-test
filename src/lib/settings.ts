@@ -28,7 +28,7 @@ export interface Settings {
 export const DEFAULT_SETTINGS: Settings = {
   soundbot: {
     enabled: true,
-    personaId: "proctor",
+    personaId: "samantha",
     volume: 1,
     customVoiceURI: null,
     customPitch: 1,
@@ -41,15 +41,25 @@ export const DEFAULT_SETTINGS: Settings = {
   narrator: true,
 };
 
-/** Voice ids that used to exist; stored values fall back to the default. */
 const KNOWN_PERSONAS = new Set([
-  "proctor",
-  "warden",
-  "nurse",
-  "machine",
-  "dirge",
+  "samantha",
+  "tessa",
+  "moira",
+  "karen",
+  "daniel",
+  "fred",
   "custom",
 ]);
+
+/** Earlier voice names, mapped to the closest current voice. */
+const LEGACY_PERSONAS: Record<string, string> = {
+  proctor: "samantha",
+  warden: "daniel",
+  nurse: "moira",
+  machine: "fred",
+  dirge: "fred",
+  whisper: "samantha",
+};
 
 const num = (v: unknown, d: number, min: number, max: number) =>
   typeof v === "number" && Number.isFinite(v)
@@ -65,8 +75,10 @@ function sanitize(raw: unknown): Settings {
       enabled:
         typeof sb.enabled === "boolean" ? sb.enabled : d.soundbot.enabled,
       personaId:
-        typeof sb.personaId === "string" && KNOWN_PERSONAS.has(sb.personaId)
-          ? sb.personaId
+        typeof sb.personaId === "string"
+          ? KNOWN_PERSONAS.has(sb.personaId)
+            ? sb.personaId
+            : (LEGACY_PERSONAS[sb.personaId] ?? d.soundbot.personaId)
           : d.soundbot.personaId,
       volume: num(sb.volume, d.soundbot.volume, 0, 1),
       customVoiceURI:

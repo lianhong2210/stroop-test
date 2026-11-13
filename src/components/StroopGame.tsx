@@ -224,6 +224,8 @@ export function StroopGame() {
           settings={settings}
           voices={voices}
           onClose={closeModal}
+          muted={muted}
+          onUnmute={() => applyMute(false)}
         />
       )}
 
