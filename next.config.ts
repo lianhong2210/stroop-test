@@ -1,8 +1,10 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  cacheComponents: true,
-  partialPrefetching: true,
+  // Build a fully static site into `out/` (HTML, CSS, JS, icons). The game
+  // runs entirely in the browser, so it can be hosted on any static host,
+  // e.g. Cloudflare Pages with build output directory `out`.
+  output: "export",
   // Hide the floating Next.js badge in development; errors still surface.
   devIndicators: false,
   // Let phones/tablets on the local network load the dev server

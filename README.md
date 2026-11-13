@@ -179,7 +179,7 @@ src/
     icon1.png          32 px tab icon
     icon2.png          192 px icon for phones
     apple-icon.png     iPhone/iPad home-screen icon
-    manifest.ts        web app manifest (Android home screen)
+    manifest.webmanifest  web app manifest (Android home screen)
   components/
     StroopGame.tsx     screen flow, music, unlocks
     SoundGate.tsx      opening "turn on sound" screen
