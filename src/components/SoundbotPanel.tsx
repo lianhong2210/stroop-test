@@ -54,6 +54,14 @@ export function SoundbotPanel({
     preview();
   };
 
+  // Browsers fire no "change" when an already-selected radio is clicked,
+  // so a second click on the current voice replays it from here.
+  const replayIfSelected = (personaId: string) => {
+    if (settingsStore.get().soundbot.personaId !== personaId) return;
+    sfx.ui();
+    preview();
+  };
+
   return (
     <div className="modal-backdrop" onClick={onClose}>
       <div
@@ -120,6 +128,7 @@ export function SoundbotPanel({
                   name="persona"
                   checked={sb.personaId === p.id}
                   onChange={() => choose(p.id)}
+                  onClick={() => replayIfSelected(p.id)}
                 />
                 <span>
                   <span className="choice-name">{p.name}</span>
@@ -139,6 +148,7 @@ export function SoundbotPanel({
               name="persona"
               checked={sb.personaId === CUSTOM_PERSONA_ID}
               onChange={() => choose(CUSTOM_PERSONA_ID)}
+              onClick={() => replayIfSelected(CUSTOM_PERSONA_ID)}
             />
             <span>
               <span className="choice-name">Custom</span>
@@ -212,13 +222,17 @@ export function SoundbotPanel({
         </label>
 
         <div className="paper-actions">
-          <button
-            className="act"
-            onClick={preview}
-            disabled={!sb.enabled || !supported || muted}
-          >
-            ▶ Test voice
-          </button>
+          {sb.enabled ? (
+            <button
+              className="act"
+              onClick={preview}
+              disabled={!supported || muted}
+            >
+              ▶ Test voice
+            </button>
+          ) : (
+            <span />
+          )}
           <button className="act act-quiet" onClick={onClose}>
             Done
           </button>
