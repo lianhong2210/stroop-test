@@ -221,7 +221,60 @@ export function resolveVoice(
  * playing, and give the engine a moment before speaking again. When idle we
  * speak immediately, which keeps the call inside the user's tap (iOS needs it).
  */
-function play(synth: SpeechSynthesis, u: SpeechSynthesisUtterance) {
+/* ---------- speech engine health ---------- */
+
+/**
+ * "stuck": the browser accepted speech but never started it, even after a
+ * reset. A known Chrome-on-desktop failure; only restarting the browser fixes it.
+ */
+export type SpeechHealth = "unknown" | "ok" | "stuck";
+let health: SpeechHealth = "unknown";
+const healthListeners = new Set<() => void>();
+function setHealth(h: SpeechHealth) {
+  if (h === health) return;
+  health = h;
+  healthListeners.forEach((l) => l());
+}
+export function useSpeechHealth(): SpeechHealth {
+  return useSyncExternalStore(
+    (cb) => {
+      healthListeners.add(cb);
+      return () => healthListeners.delete(cb);
+    },
+    () => health,
+    () => "unknown",
+  );
+}
+
+/** Strong reference: Chrome can drop an utterance it is still holding. */
+let current: SpeechSynthesisUtterance | null = null;
+
+/** How long an accepted utterance may take to start before we intervene. */
+const START_TIMEOUT_MS = 1500;
+
+function clone(u: SpeechSynthesisUtterance) {
+  const c = new SpeechSynthesisUtterance(u.text);
+  if (u.voice) c.voice = u.voice;
+  c.lang = u.lang;
+  c.pitch = u.pitch;
+  c.rate = u.rate;
+  c.volume = u.volume;
+  c.onstart = u.onstart;
+  c.onend = u.onend;
+  c.onerror = u.onerror;
+  return c;
+}
+
+/**
+ * Hand an utterance to the browser, robustly:
+ *  - Only cancel when something is actually playing, then give the engine a
+ *    moment: Chrome can silently drop speech queued straight after cancel().
+ *  - When idle, speak immediately so the call stays inside the user's tap
+ *    (iOS needs that).
+ *  - Watchdog: if speech is accepted but never starts, reset the queue and
+ *    retry once; if it still doesn't start, report the engine as stuck.
+ */
+function play(synth: SpeechSynthesis, u: SpeechSynthesisUtterance, retry = false) {
   const prevError = u.onerror;
   u.onerror = function (e) {
     if (e.error !== "interrupted" && e.error !== "canceled") {
@@ -229,13 +282,42 @@ function play(synth: SpeechSynthesis, u: SpeechSynthesisUtterance) {
     }
     prevError?.call(this, e);
   };
-  if (synth.speaking || synth.pending) {
+
+  let started = false;
+  u.addEventListener("start", () => {
+    started = true;
+    setHealth("ok");
+  });
+  u.addEventListener("end", () => {
+    if (current === u) current = null;
+  });
+  current = u;
+
+  const send = () => {
+    if (current === u) synth.speak(u);
+  };
+  if (!retry && (synth.speaking || synth.pending)) {
     synth.cancel();
-    setTimeout(() => synth.speak(u), 80);
+    setTimeout(send, 80);
   } else {
     if (synth.paused) synth.resume();
-    synth.speak(u);
+    send();
   }
+
+  setTimeout(() => {
+    // Superseded by newer speech, or it played: nothing to do.
+    if (started || current !== u) return;
+    if (retry) {
+      console.warn("[speech] engine accepted speech but never started it");
+      setHealth("stuck");
+      synth.cancel();
+      current = null;
+      return;
+    }
+    synth.cancel();
+    const again = clone(u);
+    setTimeout(() => play(synth, again, true), 120);
+  }, START_TIMEOUT_MS + (retry ? 0 : 80));
 }
 
 export function isSpeechMuted() {

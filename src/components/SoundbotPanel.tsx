@@ -10,6 +10,7 @@ import {
   PERSONAS,
   speak,
   speechSupported,
+  useSpeechHealth,
 } from "@/lib/soundbot";
 
 interface Props {
@@ -34,6 +35,7 @@ export function SoundbotPanel({
   const sb = settings.soundbot;
   const ref = useRef<HTMLDivElement>(null);
   const supported = speechSupported();
+  const health = useSpeechHealth();
 
   useEffect(() => {
     ref.current?.focus({ preventScroll: true });
@@ -83,6 +85,14 @@ export function SoundbotPanel({
             <button className="act act-quiet" onClick={onUnmute}>
               <u>Turn sound on</u>
             </button>
+          </p>
+        )}
+
+        {health === "stuck" && !muted && (
+          <p className="warn" style={{ marginBottom: 12 }} role="alert">
+            Your browser&apos;s speech engine isn&apos;t responding. It accepts
+            the voice but never plays it. Fully quit the browser (on a Mac:
+            ⌘Q, not just closing the window), reopen it, and try again.
           </p>
         )}
 
