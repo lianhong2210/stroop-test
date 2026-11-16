@@ -3,7 +3,7 @@ import Link from "next/link";
 import { CONTACT_EMAIL } from "@/lib/site";
 
 export const metadata: Metadata = {
-  title: "Terms · Stroop Test",
+  title: "Terms · Stroop",
   description: "The rules for playing Stroop and using its leaderboard.",
 };
 

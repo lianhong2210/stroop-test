@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { AuthCallback } from "@/components/AuthCallback";
 
 export const metadata: Metadata = {
-  title: "Signing in · Stroop Test",
+  title: "Signing in · Stroop",
   robots: { index: false },
 };
 

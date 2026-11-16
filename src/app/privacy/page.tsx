@@ -3,7 +3,7 @@ import Link from "next/link";
 import { CONTACT_EMAIL } from "@/lib/site";
 
 export const metadata: Metadata = {
-  title: "Privacy · Stroop Test",
+  title: "Privacy · Stroop",
   description: "What the Stroop game stores about you, and why.",
 };
 
