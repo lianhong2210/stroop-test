@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { SITE_NAME } from "@/lib/site";
 
 interface Props {
   onChoose: (soundOn: boolean) => void;
@@ -28,6 +29,10 @@ export function SoundGate({ onChoose }: Props) {
       aria-labelledby="gate-title"
     >
       <div className="gate-inner">
+        {/* The app's name in plain, readable type on the first screen a
+            visitor sees. Google's brand check looks for it (the big STROOP
+            logo is masked and split into coloured pieces, so it can't). */}
+        <p className="gate-brand">{SITE_NAME}</p>
         <svg
           className="gate-icon"
           viewBox="0 0 64 64"

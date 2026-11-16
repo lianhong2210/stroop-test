@@ -250,6 +250,14 @@ html[data-sound="known"] .gate {
   from { opacity: 0; }
 }
 
+.gate .gate-brand {
+  margin: 0 0 4px;
+  font-family: var(--font-type);
+  font-size: 22px;
+  letter-spacing: 0.12em;
+  color: var(--bone);
+}
+
 .gate-icon {
   width: 72px;
   height: 72px;
