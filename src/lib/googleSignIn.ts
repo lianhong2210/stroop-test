@@ -15,7 +15,9 @@ import { getSupabase } from "./supabase";
  * to the redirect flow.
  */
 
-const CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+// Trimmed: a value pasted into a dashboard with a trailing newline makes
+// Google answer "The OAuth client was not found".
+const CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID?.trim();
 const SCRIPT_SRC = "https://accounts.google.com/gsi/client";
 
 interface CredentialResponse {

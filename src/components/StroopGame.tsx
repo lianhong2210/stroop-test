@@ -11,6 +11,7 @@ import {
   type DifficultyId,
 } from "@/lib/difficulty";
 import { isUnlocked, progressStore, resetProgress } from "@/lib/progress";
+import { attachProgressSync, useProgressSync } from "@/lib/progressSync";
 import {
   finishRankedRun,
   startRankedRun,
@@ -67,6 +68,15 @@ export function StroopGame() {
   /** Signed in: what the server made of the last finished run. */
   const [submission, setSubmission] = useState<Submission | null>(null);
   const submittingRun = useRef<string | null>(null);
+
+  // Signed in: load the account's progress, or give a first-time account the
+  // guest progress from this device; then save every change to the account.
+  const userId = auth.status === "signed-in" ? auth.user.id : null;
+  useEffect(() => (userId ? attachProgressSync(userId) : undefined), [userId]);
+  const sync = useProgressSync();
+  const progressPending =
+    auth.status === "loading" ||
+    (userId !== null && (sync.forUser !== userId || sync.busy));
 
   // Keep a bot-check token ready so ranked runs start without delay.
   useEffect(() => {
@@ -278,6 +288,7 @@ export function StroopGame() {
           progress={progress}
           settings={settings}
           freshUnlock={freshUnlock}
+          loading={progressPending}
           onStart={start}
           onOpenVoice={() => setModal("voice")}
           onOpenSettings={() => setModal("settings")}

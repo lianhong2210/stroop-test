@@ -10,12 +10,12 @@ export interface Progress {
   best: Record<DifficultyId, number | null>;
 }
 
-const DEFAULT_PROGRESS: Progress = {
+export const DEFAULT_PROGRESS: Progress = {
   cleared: { easy: false, normal: false, hard: false, overload: false },
   best: { easy: null, normal: null, hard: null, overload: null },
 };
 
-function sanitize(raw: unknown): Progress {
+export function sanitizeProgress(raw: unknown): Progress {
   const out: Progress = {
     cleared: { ...DEFAULT_PROGRESS.cleared },
     best: { ...DEFAULT_PROGRESS.best },
@@ -34,7 +34,7 @@ function sanitize(raw: unknown): Progress {
 export const progressStore = createPersistentStore<Progress>(
   "stroop.progress.v1",
   DEFAULT_PROGRESS,
-  sanitize,
+  sanitizeProgress,
 );
 
 export function isUnlocked(progress: Progress, id: DifficultyId): boolean {

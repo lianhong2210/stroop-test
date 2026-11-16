@@ -2,6 +2,7 @@
 
 import type { User } from "@supabase/supabase-js";
 import { useSyncExternalStore } from "react";
+import { forgetProgressOwner } from "./progressSync";
 import { getSupabase, supabaseConfigured } from "./supabase";
 
 export interface Profile {
@@ -128,6 +129,8 @@ export async function deleteAccount(): Promise<string | null> {
   if (!sb || state.status !== "signed-in") return "Sign in first.";
   const { error } = await sb.rpc("delete_my_account");
   if (error) return "Couldn't delete the account. Try again.";
+  // Progress on this device stays, and counts as a guest's again.
+  forgetProgressOwner();
   // The session belongs to a user that no longer exists; clear it locally.
   await sb.auth.signOut({ scope: "local" });
   return null;

@@ -65,6 +65,11 @@ export default function PrivacyPage() {
             genuine.
           </li>
           <li>Your best score and average reaction time for each mode.</li>
+          <li>
+            Your unlocked modes and personal bests, so they follow you to other
+            devices. The first time you sign in, the progress you made as a
+            guest on that device is copied to your account.
+          </li>
         </ul>
 
         <h3>What is public</h3>

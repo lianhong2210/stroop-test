@@ -138,6 +138,11 @@ Playing never needs an account. To get on the leaderboard, choose **Sign in** on
 - **Your public name:** you start as a random `Subject-#####`. Change it under **Subject** on the menu (3–16 letters, numbers, `_` or `-`, unique). Your Google name and email are never shown.
 - **Leaderboard:** shows the top 5 per mode. Ranking is by score, then by faster average reaction time, then by who got there first. If you're outside the top 5, your own position is shown underneath. Tabs only show modes you can see, so Overload stays secret until you unlock it.
 - **Ranked runs:** while you're signed in, every run is ranked. The viewfinder shows *ranked* in the corner, and the report says where the run placed.
+- **Progress follows the account:** unlocked modes and personal bests are saved to the account.
+  - **Signing in to an account that already has progress** loads that progress onto the device.
+  - **First sign-in:** progress played as a guest on this device is copied to the new account.
+  - **Signing back in on the same device:** anything earned while signed out is merged in, not lost.
+  - **Leaderboard unaffected:** personal bests still come from the browser, so they never reach the leaderboard; only checked ranked runs do.
 - **Account deletion:** **Delete account** in the same form removes your name, runs and scores for good.
 
 ### How scores are kept honest

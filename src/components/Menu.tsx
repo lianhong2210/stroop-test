@@ -17,6 +17,8 @@ interface Props {
   progress: Progress;
   settings: Settings;
   freshUnlock: DifficultyId | null;
+  /** Saved progress isn't known yet (page loading, or account syncing). */
+  loading: boolean;
   onStart: (id: DifficultyId) => void;
   onOpenVoice: () => void;
   onOpenSettings: () => void;
@@ -47,6 +49,7 @@ export function Menu({
   progress,
   settings,
   freshUnlock,
+  loading,
   onStart,
   onOpenVoice,
   onOpenSettings,
@@ -54,8 +57,9 @@ export function Menu({
   onOpenAccount,
   onOpenLeaderboard,
 }: Props) {
-  const ready = useHydrated();
-  const voice = !ready
+  const hydrated = useHydrated();
+  const ready = hydrated && !loading;
+  const voice = !hydrated
     ? "…"
     : !settings.soundbot.enabled
       ? "off"
