@@ -1,10 +1,22 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { getAuth, useAuth } from "@/lib/auth";
 import { duckMusic, playScene, setMusicVolume, stopMusic, type Scene } from "@/lib/bgm";
 import { pickLine, type Verdict } from "@/lib/narration";
-import { DIFFICULTIES, nextUnlock, type DifficultyId } from "@/lib/difficulty";
-import { progressStore, resetProgress } from "@/lib/progress";
+import {
+  DIFFICULTIES,
+  DIFFICULTY_ORDER,
+  nextUnlock,
+  type DifficultyId,
+} from "@/lib/difficulty";
+import { isUnlocked, progressStore, resetProgress } from "@/lib/progress";
+import {
+  finishRankedRun,
+  startRankedRun,
+  type RankedRun,
+  type Submission,
+} from "@/lib/ranked";
 import { settingsStore } from "@/lib/settings";
 import { rememberSoundChoice, soundChoiceStore } from "@/lib/soundChoice";
 import { primeAudio, setMuted, setSfxEnabled, sfx } from "@/lib/sfx";
@@ -16,7 +28,10 @@ import {
 } from "@/lib/soundbot";
 import { useStore } from "@/lib/store";
 import type { GameResult } from "@/lib/trial";
+import { warmTurnstile } from "@/lib/turnstile";
+import { AccountPanel } from "./AccountPanel";
 import { Game } from "./Game";
+import { LeaderboardPanel } from "./LeaderboardPanel";
 import { Menu } from "./Menu";
 import { Results, type ResultInfo } from "./Results";
 import { SettingsPanel } from "./SettingsPanel";
@@ -24,12 +39,13 @@ import { SoundbotPanel } from "./SoundbotPanel";
 import { SoundGate } from "./SoundGate";
 
 type Screen = "menu" | "game" | "results";
-type Modal = "settings" | "voice" | null;
+type Modal = "settings" | "voice" | "account" | "leaderboard" | null;
 
 export function StroopGame() {
   const progress = useStore(progressStore);
   const settings = useStore(settingsStore);
   const voices = useVoices();
+  const auth = useAuth();
 
   // The sound screen shows on a first visit, or once the remembered answer
   // has expired. Otherwise the saved answer is used straight away.
@@ -45,6 +61,29 @@ export function StroopGame() {
   const [result, setResult] = useState<ResultInfo | null>(null);
   const [freshUnlock, setFreshUnlock] = useState<DifficultyId | null>(null);
   const [modal, setModal] = useState<Modal>(null);
+  const [boardMode, setBoardMode] = useState<DifficultyId>("easy");
+  /** Signed in: the server issuing this run's seed. */
+  const [ranked, setRanked] = useState<Promise<RankedRun | null> | null>(null);
+  /** Signed in: what the server made of the last finished run. */
+  const [submission, setSubmission] = useState<Submission | null>(null);
+  const submittingRun = useRef<string | null>(null);
+
+  // Keep a bot-check token ready so ranked runs start without delay.
+  useEffect(() => {
+    if (auth.status === "signed-in") warmTurnstile();
+  }, [auth.status]);
+
+  // Leaderboard tabs: only modes this player can see, so it never gives away
+  // a hidden mode.
+  const boardModes = DIFFICULTY_ORDER.filter(
+    (id) => !DIFFICULTIES[id].hidden || isUnlocked(progress, id),
+  );
+  // Opens on the given mode, else the hardest mode the player has unlocked.
+  const openBoard = (mode?: DifficultyId) => {
+    const unlocked = boardModes.filter((id) => isUnlocked(progress, id));
+    setBoardMode(mode ?? unlocked.at(-1) ?? "easy");
+    setModal("leaderboard");
+  };
 
   useEffect(() => setSfxEnabled(settings.sfx), [settings.sfx]);
 
@@ -142,6 +181,13 @@ export function StroopGame() {
     primeAudio();
     sfx.ui();
     setModal(null);
+    setSubmission(null);
+    submittingRun.current = null;
+    setRanked(
+      getAuth().status === "signed-in"
+        ? startRankedRun(id).catch(() => null)
+        : null,
+    );
     setMode(id);
     setRunKey((k) => k + 1);
     setScreen("game");
@@ -191,6 +237,18 @@ export function StroopGame() {
       remark: pickLine(verdict),
     });
     setScreen("results");
+
+    if (game.runId) {
+      const runId = game.runId;
+      submittingRun.current = runId;
+      setSubmission({ status: "pending" });
+      finishRankedRun(runId, game.records).then(
+        (s) => submittingRun.current === runId && setSubmission(s),
+        () =>
+          submittingRun.current === runId &&
+          setSubmission({ status: "error", reason: "network error" }),
+      );
+    }
   }, []);
 
   const closeModal = useCallback(() => setModal(null), []);
@@ -223,6 +281,9 @@ export function StroopGame() {
           onStart={start}
           onOpenVoice={() => setModal("voice")}
           onOpenSettings={() => setModal("settings")}
+          auth={auth}
+          onOpenAccount={() => setModal("account")}
+          onOpenLeaderboard={() => openBoard()}
         />
       )}
 
@@ -234,6 +295,7 @@ export function StroopGame() {
           voices={voices}
           onFinish={finish}
           onAbort={toMenu}
+          ranked={ranked}
         />
       )}
 
@@ -244,6 +306,10 @@ export function StroopGame() {
           onMenu={toMenu}
           onPlay={start}
           onNarrate={narrate}
+          auth={auth}
+          submission={submission}
+          onOpenLeaderboard={() => openBoard(result.game.difficulty)}
+          onOpenAccount={() => setModal("account")}
         />
       )}
 
@@ -265,6 +331,18 @@ export function StroopGame() {
           onClose={closeModal}
           muted={muted}
           onUnmute={unmute}
+        />
+      )}
+
+      {modal === "account" && <AccountPanel auth={auth} onClose={closeModal} />}
+
+      {modal === "leaderboard" && (
+        <LeaderboardPanel
+          modes={boardModes}
+          initialMode={boardMode}
+          auth={auth}
+          onOpenAccount={() => setModal("account")}
+          onClose={closeModal}
         />
       )}
 

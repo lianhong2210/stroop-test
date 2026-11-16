@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import type { AuthState } from "@/lib/auth";
 import { duckMusic } from "@/lib/bgm";
 import { NARRATION_ENABLED } from "@/lib/narration";
 import { silence } from "@/lib/soundbot";
 import { DIFFICULTIES, type DifficultyId } from "@/lib/difficulty";
+import type { Submission } from "@/lib/ranked";
 import { summarize, type GameResult } from "@/lib/trial";
 
 export interface ResultInfo {
@@ -24,13 +26,104 @@ interface Props {
   onMenu: () => void;
   onPlay: (id: DifficultyId) => void;
   onNarrate: (line: string) => void;
+  auth: AuthState;
+  /** Signed in: what the server made of this run (null = it wasn't ranked). */
+  submission: Submission | null;
+  onOpenLeaderboard: () => void;
+  onOpenAccount: () => void;
+}
+
+function Ranking({
+  auth,
+  submission,
+  rounds,
+  onOpenAccount,
+}: {
+  auth: AuthState;
+  submission: Submission | null;
+  rounds: number | null;
+  onOpenAccount: () => void;
+}) {
+  if (auth.status !== "signed-in") {
+    return (
+      <p className="ranking">
+        <span>Leaderboard:</span> not ranked.{" "}
+        <button className="act act-quiet" onClick={onOpenAccount}>
+          <u>Sign in</u>
+        </button>{" "}
+        to put your scores on it.
+      </p>
+    );
+  }
+  if (!submission) {
+    return (
+      <p className="ranking">
+        <span>Leaderboard:</span> not ranked. The bot check or the server
+        didn&apos;t answer when the run started.
+      </p>
+    );
+  }
+  switch (submission.status) {
+    case "pending":
+      return (
+        <p className="ranking">
+          <span>Leaderboard:</span> checking your run
+          <span className="loading-cursor" aria-hidden>
+            ▍
+          </span>
+        </p>
+      );
+    case "accepted": {
+      if (submission.score === 0) {
+        return (
+          <p className="ranking">
+            <span>Leaderboard:</span> no correct answers, nothing to rank.
+          </p>
+        );
+      }
+      const of = rounds !== null ? `/${rounds}` : "";
+      return (
+        <p className="ranking">
+          <span>Leaderboard:</span>{" "}
+          {submission.rank !== null && <strong>#{submission.rank}</strong>}
+          {submission.isBest
+            ? " · new personal best"
+            : submission.best
+              ? ` · your best stays ${submission.best.score}${of} (${submission.best.avgRtMs} ms)`
+              : ""}
+        </p>
+      );
+    }
+    case "rejected":
+      return (
+        <p className="ranking is-bad">
+          <span>Leaderboard:</span> run not counted ({submission.reason}).
+        </p>
+      );
+    case "error":
+      return (
+        <p className="ranking is-bad">
+          <span>Leaderboard:</span> couldn&apos;t submit ({submission.reason}).
+        </p>
+      );
+  }
 }
 
 const ms = (v: number | null) => (v === null ? "n/a" : `${Math.round(v)} ms`);
 
 const MARK = { correct: "✓", wrong: "✗", timeout: "–" } as const;
 
-export function Results({ info, onRetry, onMenu, onPlay, onNarrate }: Props) {
+export function Results({
+  info,
+  onRetry,
+  onMenu,
+  onPlay,
+  onNarrate,
+  auth,
+  submission,
+  onOpenLeaderboard,
+  onOpenAccount,
+}: Props) {
   const d = DIFFICULTIES[info.game.difficulty];
   const s = summarize(info.game.records);
   const scoreMode = d.goal === null;
@@ -147,6 +240,18 @@ export function Results({ info, onRetry, onMenu, onPlay, onNarrate }: Props) {
           ))}
         </ol>
 
+        {auth.status !== "off" && auth.status !== "loading" && (
+          <>
+            <hr />
+            <Ranking
+              auth={auth}
+              submission={submission}
+              rounds={d.rounds}
+              onOpenAccount={onOpenAccount}
+            />
+          </>
+        )}
+
         {NARRATION_ENABLED && (
           <>
             <hr />
@@ -186,6 +291,11 @@ export function Results({ info, onRetry, onMenu, onPlay, onNarrate }: Props) {
         {info.unlocked && (
           <button className="act" onClick={onRetry}>
             Replay {d.label}
+          </button>
+        )}
+        {auth.status !== "off" && (
+          <button className="act" onClick={onOpenLeaderboard}>
+            Leaderboard
           </button>
         )}
         <button className="act" onClick={onMenu}>

@@ -1,16 +1,9 @@
+import { makeRound, type Rand, type RoundSpec } from "@shared/stroop";
 import type { ColorId } from "./colors";
-import { CONGRUENT_CHANCE, type DifficultyId } from "./difficulty";
+import type { DifficultyId } from "./difficulty";
 
-export interface Trial {
+export interface Trial extends RoundSpec {
   id: number;
-  /** The word that is written (and spoken). */
-  word: ColorId;
-  /** The ink the word is painted in: the correct answer. */
-  ink: ColorId;
-  /** Button order for this round (left→right, top→bottom). */
-  order: ColorId[];
-  /** Label ink per button (aligned with `order`) when the panel lies too, else null. */
-  labelInks: ColorId[] | null;
   start: number;
 }
 
@@ -28,46 +21,22 @@ export interface GameResult {
   difficulty: DifficultyId;
   records: RoundRecord[];
   correct: number;
+  /** Set when the run was issued by the server and can go on the leaderboard. */
+  runId: string | null;
 }
 
-const pick = <T,>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)];
-
-function pickExcept<T>(arr: T[], ...not: (T | undefined)[]): T {
-  const pool = arr.filter((x) => !not.includes(x));
-  return pick(pool.length ? pool : arr);
-}
-
-function shuffle<T>(arr: T[]): T[] {
-  const a = arr.slice();
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
-}
-
-/** A shuffle of `arr` where no element stays matched to `against[i]`. */
-function derange<T>(arr: T[], against: T[]): T[] {
-  for (;;) {
-    const a = shuffle(arr);
-    if (a.every((x, i) => x !== against[i])) return a;
-  }
-}
-
+/**
+ * Next round. Ranked runs pass a generator seeded by the server, so it can
+ * replay exactly the same rounds when checking the answers.
+ */
 export function makeTrial(
   palette: ColorId[],
   prev: Trial | null,
   opts: { shuffle: boolean; mislabel: boolean },
   id: number,
+  rand: Rand = Math.random,
 ): Trial {
-  // Avoid repeating the previous answer so every round demands a fresh read.
-  const ink = pickExcept(palette, prev?.ink);
-  const congruent = Math.random() < CONGRUENT_CHANCE;
-  const word = congruent ? ink : pickExcept(palette, ink, prev?.word);
-  const order = opts.shuffle ? shuffle(palette) : palette;
-  // Every ink is used exactly once across the panel, never on its own name.
-  const labelInks = opts.mislabel ? derange(palette, order) : null;
-  return { id, word, ink, order, labelInks, start: 0 };
+  return { ...makeRound(palette, prev, opts, rand), id, start: 0 };
 }
 
 export interface Summary {

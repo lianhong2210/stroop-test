@@ -131,6 +131,28 @@ Open **Settings** from the menu to switch on or off:
 
 If you chose **Continue without sound** on the opening screen, Settings shows a link to turn sound back on. That change is remembered too.
 
+## Accounts and the leaderboard
+
+Playing never needs an account. To get on the leaderboard, choose **Sign in** on the menu and sign in with Google.
+
+- **Your public name:** you start as a random `Subject-#####`. Change it under **Subject** on the menu (3–16 letters, numbers, `_` or `-`, unique). Your Google name and email are never shown.
+- **Leaderboard:** shows the top 5 per mode. Ranking is by score, then by faster average reaction time, then by who got there first. If you're outside the top 5, your own position is shown underneath. Tabs only show modes you can see, so Overload stays secret until you unlock it.
+- **Ranked runs:** while you're signed in, every run is ranked. The viewfinder shows *ranked* in the corner, and the report says where the run placed.
+- **Account deletion:** **Delete account** in the same form removes your name, runs and scores for good.
+
+### How scores are kept honest
+
+1. **Bot check.** When a signed-in player starts a run, an invisible Cloudflare Turnstile check runs. The `start-run` Edge Function verifies it and issues the run with a random seed.
+2. **Seeded rounds.** The seed decides every word, ink and button layout in that run.
+3. **Server replay.** After the run, the game sends only what was pressed and when. The `finish-run` function replays the run from the seed with the same code (`supabase/functions/_shared/stroop.ts`) and scores it itself. It rejects:
+   - reaction times faster than a human can read a colour
+   - answers after an Overload clock ran out
+   - runs submitted faster than their answers add up to
+   - runs submitted twice
+4. **Best score kept.** Only the best checked run per player and mode is stored.
+
+If the bot check or the server doesn't answer within a few seconds of the countdown, the run still plays, just unranked.
+
 ## Accessibility
 
 - Every answer can be made from the keyboard.
@@ -150,6 +172,8 @@ npm run dev
 
 Then open <http://localhost:3000>.
 
+Accounts and the leaderboard need a Supabase project, a Google OAuth client and a Turnstile widget. [`docs/backend-setup.md`](docs/backend-setup.md) walks through all three, plus the `.env` values, `supabase db push` and deploying the two Edge Functions. Without those `.env` values, the game runs fine and simply hides **Sign in** and **Leaderboard**.
+
 **On a phone or tablet:** connect it to the same Wi-Fi and open `http://<your computer's local IP>:3000`. `next.config.ts` allows private network addresses (`192.168.*.*`, `10.*.*.*`, `172.*.*.*`, `*.local`) for the dev server. Without that, Next.js blocks its development scripts and the page loads but never responds to taps.
 
 **Production build:**
@@ -161,7 +185,9 @@ npm start
 
 ## Built with
 
-- [Next.js 16](https://nextjs.org) (App Router), React 19 and TypeScript. No other runtime dependencies.
+- [Next.js 16](https://nextjs.org) (App Router), React 19 and TypeScript, exported as a static site.
+- [Supabase](https://supabase.com): Google sign-in, Postgres, and two Edge Functions (Deno) for ranked runs.
+- [Cloudflare Turnstile](https://www.cloudflare.com/products/turnstile/): an invisible bot check before ranked runs.
 - **Web Speech API** for the voice.
 - **Web Audio API** for all music and sound effects, synthesised on the fly.
 - Plain CSS for all visuals, including the scanlines, film grain and scratched type.
@@ -171,12 +197,23 @@ npm start
 ```
 docs/
   banner.jpg           README header image
+  backend-setup.md     Google, Supabase and Cloudflare setup
+supabase/
+  config.toml          Edge Function settings
+  migrations/          tables, access rules, leaderboard functions
+  functions/
+    _shared/stroop.ts  game rules and round generation (used by game AND server)
+    _shared/http.ts    helpers for the functions
+    start-run/         bot check, then issue a seeded run
+    finish-run/        replay, score and keep the best
 public/
   icons/               192/512 px and maskable app icons
 src/
   app/
     layout.tsx         fonts and page metadata
     page.tsx           mounts the game
+    privacy/           privacy policy
+    auth/callback/     where Google sign-in returns to
     globals.css        all styling
     favicon.ico        16/32/48 px favicon (the misprinted S)
     icon1.png          32 px tab icon
@@ -191,10 +228,18 @@ src/
     Results.tsx        the evaluation report
     SettingsPanel.tsx  settings form
     SoundbotPanel.tsx  voice picker
+    AccountPanel.tsx   sign in, username, sign out, delete account
+    LeaderboardPanel.tsx  top 5 per mode
+    AuthCallback.tsx   finishes Google sign-in
   lib/
-    difficulty.ts      modes, timings, goals, unlock chain
+    difficulty.ts      mode names and text (rules are in _shared/stroop.ts)
     colors.ts          the nine inks
-    trial.ts           round generation and result stats
+    trial.ts           rounds and result stats
+    supabase.ts        Supabase client (off when .env is missing)
+    auth.ts            sign-in state, username, account deletion
+    turnstile.ts       invisible bot check
+    ranked.ts          start-run / finish-run calls
+    leaderboard.ts     reads the leaderboard
     soundbot.ts        voices and speech
     sfx.ts             sound effects and ambience
     bgm.ts             menu, pass and fail music
@@ -207,9 +252,10 @@ src/
 
 | To change | Edit |
 | --- | --- |
-| Rounds, timings, pass marks, penalties, unlock order | `src/lib/difficulty.ts` |
-| How often the word matches its ink (`CONGRUENT_CHANCE`) | `src/lib/difficulty.ts` |
-| Ink colours and the order they're added | `src/lib/colors.ts` |
+| Rounds, timings, pass marks, penalties, unlock order | `RULES` in `supabase/functions/_shared/stroop.ts`, then redeploy both functions |
+| How often the word matches its ink (`CONGRUENT_CHANCE`) | `supabase/functions/_shared/stroop.ts`, then redeploy both functions |
+| Ink colours | `src/lib/colors.ts` (the order they're added is in `_shared/stroop.ts`) |
+| Mode names and descriptions | `src/lib/difficulty.ts` |
 | Voices and their tuning | `PERSONAS` in `src/lib/soundbot.ts` |
 | Music | the scene functions in `src/lib/bgm.ts` |
 

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import type { AuthState } from "@/lib/auth";
 import { COLORS } from "@/lib/colors";
 import {
   DIFFICULTIES,
@@ -19,6 +20,9 @@ interface Props {
   onStart: (id: DifficultyId) => void;
   onOpenVoice: () => void;
   onOpenSettings: () => void;
+  auth: AuthState;
+  onOpenAccount: () => void;
+  onOpenLeaderboard: () => void;
 }
 
 function detail(id: DifficultyId) {
@@ -46,6 +50,9 @@ export function Menu({
   onStart,
   onOpenVoice,
   onOpenSettings,
+  auth,
+  onOpenAccount,
+  onOpenLeaderboard,
 }: Props) {
   const ready = useHydrated();
   const voice = !ready
@@ -175,6 +182,28 @@ export function Menu({
         <button className="act" onClick={onOpenSettings}>
           Settings
         </button>
+        {auth.status !== "off" && (
+          <>
+            <button className="act" onClick={onOpenLeaderboard}>
+              Leaderboard
+            </button>
+            <button
+              className="act"
+              onClick={onOpenAccount}
+              disabled={auth.status === "loading"}
+            >
+              {auth.status === "signed-in" ? (
+                <>
+                  Subject <span>· {auth.profile?.username ?? "…"}</span>
+                </>
+              ) : auth.status === "loading" ? (
+                <span>…</span>
+              ) : (
+                "Sign in"
+              )}
+            </button>
+          </>
+        )}
         <span className="menu-hint">
           keys <kbd>1</kbd>–<kbd>9</kbd> answer · <kbd>esc</kbd> quits a run
         </span>

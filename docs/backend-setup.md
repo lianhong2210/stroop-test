@@ -215,6 +215,39 @@ The CLI applies the database migration and deploys the Edge Functions.
 
 Docker is only needed if you want to run a full Supabase stack locally. It isn't needed to push migrations or deploy functions.
 
+### 6.3 Create the tables
+Push the migration in `supabase/migrations/` to your project:
+
+```bash
+supabase db push
+```
+
+This creates:
+- the `profiles`, `runs` and `best_scores` tables, with their access rules
+- the leaderboard and account functions
+- the trigger that gives each new player a random `Subject-#####` name
+
+To check, open **Table Editor** in the dashboard. The three tables should be listed, each marked RLS enabled.
+
+### 6.4 Deploy the Edge Functions
+```bash
+supabase functions deploy start-run --no-verify-jwt
+```
+
+```bash
+supabase functions deploy finish-run --no-verify-jwt
+```
+
+`--no-verify-jwt` matches `supabase/config.toml`: the functions check the player's session themselves, which works with the new API keys.
+
+The functions also need `TURNSTILE_SECRET_KEY` from Part 3.3. Check that it's set:
+
+```bash
+supabase secrets list
+```
+
+**Redeploy both functions whenever `supabase/functions/_shared/stroop.ts` changes.** That file holds the rounds, timings and pass marks, and the server replays runs with it. If the server's copy and the game's copy differ, every ranked run is rejected.
+
 ---
 
 ## Part 7: Check it works

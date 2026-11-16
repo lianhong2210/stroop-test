@@ -1,0 +1,11 @@
+# Supabase CLI settings for this project. Only what differs from the defaults.
+project_id = "stroop-test"
+
+# The functions check the player's session themselves (requireUser in
+# _shared/http.ts), which works with both legacy and new API keys. The
+# gateway's own JWT check doesn't work with the new key types, so it's off.
+[functions.start-run]
+verify_jwt = false
+
+[functions.finish-run]
+verify_jwt = false

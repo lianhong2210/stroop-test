@@ -1,13 +1,8 @@
-export type ColorId =
-  | "red"
-  | "blue"
-  | "green"
-  | "yellow"
-  | "purple"
-  | "orange"
-  | "pink"
-  | "cyan"
-  | "white";
+import type { ColorId } from "@shared/stroop";
+
+// The colour order and palettes live with the game rules, which the server
+// shares to check ranked runs.
+export { COLOR_ORDER, paletteFor, type ColorId } from "@shared/stroop";
 
 export interface StroopColor {
   id: ColorId;
@@ -28,20 +23,3 @@ export const COLORS: Record<ColorId, StroopColor> = {
   cyan: { id: "cyan", name: "CYAN", hex: "#2fe3e8" },
   white: { id: "white", name: "WHITE", hex: "#f4f4f0" },
 };
-
-/** Palettes grow in this order: 3 → 6 → 9 options. */
-export const COLOR_ORDER: ColorId[] = [
-  "red",
-  "blue",
-  "green",
-  "yellow",
-  "purple",
-  "orange",
-  "pink",
-  "cyan",
-  "white",
-];
-
-export function paletteFor(options: number): ColorId[] {
-  return COLOR_ORDER.slice(0, options);
-}

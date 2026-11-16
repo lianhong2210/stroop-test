@@ -1431,6 +1431,220 @@ html[data-sound="known"] .gate {
   color: var(--blood);
 }
 
+/* ---------- leaderboard ---------- */
+
+.lb-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 20px;
+  margin-top: 16px;
+}
+
+.lb-tabs button {
+  font-family: var(--font-display);
+  font-size: 20px;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--paper-dim);
+  padding: 2px 0;
+  border-bottom: 2px solid transparent;
+}
+
+.lb-tabs button:hover {
+  color: var(--paper-ink);
+}
+
+.lb-tabs button.is-active {
+  color: var(--paper-ink);
+  border-color: var(--blood);
+}
+
+.lb-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 16px;
+}
+
+.lb-table th {
+  font-weight: 400;
+  font-size: 13px;
+  color: var(--paper-dim);
+  text-align: left;
+  padding: 0 0 6px;
+}
+
+.lb-table td {
+  padding: 7px 0;
+  border-top: 1px dashed rgba(36, 33, 27, 0.25);
+}
+
+.lb-table .lb-rank {
+  width: 2.2em;
+  font-family: var(--font-display);
+  font-size: 20px;
+}
+
+.lb-table th.lb-rank {
+  font-family: inherit;
+  font-size: 13px;
+}
+
+.lb-table .lb-name {
+  overflow-wrap: anywhere;
+}
+
+.lb-table .lb-score,
+.lb-table .lb-rt {
+  text-align: right;
+  white-space: nowrap;
+  padding-left: 12px;
+}
+
+.lb-table .lb-score small {
+  color: var(--paper-dim);
+}
+
+.lb-table .lb-rt {
+  color: var(--paper-dim);
+}
+
+.lb-table tr.is-me td {
+  color: var(--blood);
+}
+
+.lb-you {
+  font-size: 13px;
+}
+
+.lb-table tr.lb-gap td {
+  border-top: none;
+  text-align: center;
+  color: var(--paper-dim);
+  padding: 0;
+}
+
+.lb-status {
+  margin: 0;
+  color: var(--paper-dim);
+}
+
+.lb-foot {
+  color: var(--paper-dim);
+  font-size: 14px;
+}
+
+/* ---------- account ---------- */
+
+.account-form label {
+  display: block;
+  font-size: 14px;
+  color: var(--paper-dim);
+  margin-bottom: 6px;
+}
+
+.account-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.account-row input {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--font-type);
+  font-size: 20px;
+  color: var(--paper-ink);
+  background: transparent;
+  border: none;
+  border-bottom: 1.5px solid var(--paper-ink);
+  padding: 4px 0;
+  border-radius: 0;
+}
+
+.account-row input:focus-visible {
+  outline: none;
+  border-bottom-color: var(--blood);
+}
+
+.account-form small {
+  display: block;
+  margin-top: 6px;
+  font-size: 13px;
+  color: var(--paper-dim);
+}
+
+.account-ok {
+  margin: 10px 0 0;
+  color: var(--paper-ink);
+}
+
+.account-form + .warn,
+.account-ok + .warn {
+  margin-top: 10px;
+}
+
+.account-copy {
+  margin: 0;
+}
+
+.account-copy a {
+  color: inherit;
+}
+
+/* results: where this run landed */
+.ranking {
+  margin: 0;
+}
+
+.ranking > span:first-child {
+  color: var(--paper-dim);
+}
+
+.ranking strong {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 22px;
+}
+
+.ranking.is-bad {
+  color: var(--blood);
+}
+
+.ranking .act {
+  font-family: var(--font-type);
+  font-size: inherit;
+  letter-spacing: 0;
+  text-transform: none;
+  padding: 0;
+  border: none;
+}
+
+/* in-game: is this run going on the leaderboard? */
+.vf-rank {
+  margin-left: 12px;
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--dim);
+}
+
+.vf-rank.is-ranked {
+  color: var(--good);
+}
+
+.vf-rank.is-connecting::after {
+  content: "…";
+}
+
+/* Turnstile: invisible normally; only shows if Cloudflare needs a click */
+.turnstile-slot {
+  position: fixed;
+  left: 50%;
+  bottom: 16px;
+  transform: translateX(-50%);
+  z-index: 95;
+}
+
 /* ---------- privacy policy page ---------- */
 
 .policy-shell {

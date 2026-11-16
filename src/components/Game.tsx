@@ -5,7 +5,9 @@ import { COLORS, paletteFor, type ColorId } from "@/lib/colors";
 import type { Difficulty } from "@/lib/difficulty";
 import type { Settings } from "@/lib/settings";
 import { sfx, startDrone, stopDrone } from "@/lib/sfx";
+import type { RankedRun } from "@/lib/ranked";
 import { silence, speak } from "@/lib/soundbot";
+import { seededRandom, type Rand } from "@shared/stroop";
 import {
   makeTrial,
   type GameResult,
@@ -20,7 +22,24 @@ interface Props {
   voices: SpeechSynthesisVoice[];
   onFinish: (result: GameResult) => void;
   onAbort: () => void;
+  /**
+   * Signed-in players: the server is issuing a ranked run. Its seed decides
+   * the rounds, so play waits for it after the countdown (briefly; if it
+   * doesn't arrive the run goes ahead unranked).
+   */
+  ranked: Promise<RankedRun | null> | null;
 }
+
+/** Extra wait after the countdown for a ranked run before playing unranked. */
+const RANKED_WAIT_MS = 5000;
+
+type RankState = "connecting" | "ranked" | "unranked";
+
+const RANK_TEXT: Record<RankState, string> = {
+  connecting: "connecting",
+  ranked: "ranked",
+  unranked: "unranked",
+};
 
 type Phase = "countdown" | "play" | "done";
 
@@ -39,7 +58,14 @@ function timecode(ms: number) {
 
 const COUNT_WORDS = ["", "one", "two", "three"];
 
-export function Game({ difficulty, settings, voices, onFinish, onAbort }: Props) {
+export function Game({
+  difficulty,
+  settings,
+  voices,
+  onFinish,
+  onAbort,
+  ranked,
+}: Props) {
   const palette = useMemo(
     () => paletteFor(difficulty.options),
     [difficulty.options],
@@ -54,6 +80,10 @@ export function Game({ difficulty, settings, voices, onFinish, onAbort }: Props)
   const [records, setRecords] = useState<RoundRecord[]>([]);
   const [clockMs, setClockMs] = useState(difficulty.durationMs ?? 0);
   const [penalties, setPenalties] = useState(0);
+  const [rankState, setRankState] = useState<RankState | null>(
+    ranked ? "connecting" : null,
+  );
+  const [waiting, setWaiting] = useState(false);
 
   // Latest props for timer callbacks, without restarting the run.
   const latest = useRef({ settings, voices, onFinish, onAbort });
@@ -75,6 +105,8 @@ export function Game({ difficulty, settings, voices, onFinish, onAbort }: Props)
     let nextId = 0;
     let endAt = 0;
     let lastPulse = -1;
+    let rand: Rand = Math.random;
+    let runId: string | null = null;
     const recs: RoundRecord[] = [];
 
     const later = (fn: () => void, ms: number) => {
@@ -104,6 +136,7 @@ export function Game({ difficulty, settings, voices, onFinish, onAbort }: Props)
           difficulty: difficulty.id,
           records: recs.slice(),
           correct: recs.filter((r) => r.outcome === "correct").length,
+          runId,
         });
       }, 900);
     };
@@ -118,6 +151,7 @@ export function Game({ difficulty, settings, voices, onFinish, onAbort }: Props)
           mislabel: difficulty.mislabelButtons,
         },
         ++nextId,
+        rand,
       );
       current.start = performance.now();
       setTrial(current);
@@ -185,6 +219,8 @@ export function Game({ difficulty, settings, voices, onFinish, onAbort }: Props)
     };
 
     const begin = () => {
+      sfx.count(true);
+      setWaiting(false);
       setPhase("play");
       if (latest.current.settings.ambience) startDrone();
       if (difficulty.durationMs !== null) {
@@ -208,8 +244,28 @@ export function Game({ difficulty, settings, voices, onFinish, onAbort }: Props)
       say(COUNT_WORDS[1]);
     }, 1600);
     later(() => {
-      sfx.count(true);
-      begin();
+      if (!ranked) return begin();
+      // Ranked: rounds must come from the server's seed.
+      let settled = false;
+      setWaiting(true);
+      const giveUp = later(() => {
+        if (settled) return;
+        settled = true;
+        setRankState("unranked");
+        begin();
+      }, RANKED_WAIT_MS);
+      ranked.then((run) => {
+        if (settled || finished) return;
+        settled = true;
+        clearTimeout(giveUp);
+        timers.delete(giveUp);
+        if (run) {
+          rand = seededRandom(run.seed);
+          runId = run.runId;
+        }
+        setRankState(run ? "ranked" : "unranked");
+        begin();
+      });
     }, 2400);
 
     return () => {
@@ -221,7 +277,7 @@ export function Game({ difficulty, settings, voices, onFinish, onAbort }: Props)
       silence();
       stopDrone();
     };
-  }, [difficulty, palette]);
+  }, [difficulty, palette, ranked]);
 
   /* ---------- keyboard: 1–9 answer, Esc aborts ---------- */
   useEffect(() => {
@@ -285,6 +341,11 @@ export function Game({ difficulty, settings, voices, onFinish, onAbort }: Props)
           <div>
             <span className="rec">REC</span>
             <span className="vf-mode">{difficulty.label}</span>
+            {rankState && (
+              <span className={`vf-rank is-${rankState}`}>
+                {RANK_TEXT[rankState]}
+              </span>
+            )}
           </div>
           <div className="vf-right">
             {timed ? (
@@ -324,8 +385,8 @@ export function Game({ difficulty, settings, voices, onFinish, onAbort }: Props)
 
         <main className="stage" aria-live="polite">
           {phase === "countdown" && (
-            <div key={count} className="countdown scratch">
-              {count}
+            <div key={waiting ? "wait" : count} className="countdown scratch">
+              {waiting ? "…" : count}
             </div>
           )}
 
