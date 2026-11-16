@@ -29,6 +29,9 @@ const type = Special_Elite({
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: SITE_TITLE,
+  // <meta name="application-name">: the app's name in machine-readable form,
+  // which Google's brand check can match against the OAuth app name.
+  applicationName: SITE_NAME,
   description: SITE_DESCRIPTION,
   openGraph: {
     type: "website",
@@ -43,6 +46,22 @@ export const metadata: Metadata = {
     title: SITE_TITLE,
     description: SITE_DESCRIPTION,
   },
+};
+
+const STRUCTURED_DATA = {
+  "@context": "https://schema.org",
+  "@graph": [
+    { "@type": "WebSite", name: SITE_NAME, url: SITE_URL },
+    {
+      "@type": "WebApplication",
+      name: SITE_NAME,
+      url: SITE_URL,
+      applicationCategory: "GameApplication",
+      operatingSystem: "Any",
+      description: SITE_DESCRIPTION,
+      offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+    },
+  ],
 };
 
 export const viewport: Viewport = {
@@ -62,6 +81,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: SOUND_CHOICE_PRELOAD_SCRIPT }} />
+        {/* Structured data naming the site and app (used by Google). */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(STRUCTURED_DATA) }}
+        />
       </head>
       <body>{children}</body>
     </html>
