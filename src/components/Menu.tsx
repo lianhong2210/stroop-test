@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { COLORS } from "@/lib/colors";
 import {
   DIFFICULTIES,
@@ -9,6 +10,7 @@ import {
 import { isUnlocked, type Progress } from "@/lib/progress";
 import { CUSTOM_PERSONA_ID, PERSONAS } from "@/lib/soundbot";
 import type { Settings } from "@/lib/settings";
+import { useHydrated } from "@/lib/store";
 
 interface Props {
   progress: Progress;
@@ -45,12 +47,15 @@ export function Menu({
   onOpenVoice,
   onOpenSettings,
 }: Props) {
-  const voice = !settings.soundbot.enabled
-    ? "off"
-    : settings.soundbot.personaId === CUSTOM_PERSONA_ID
-      ? "Custom"
-      : (PERSONAS.find((p) => p.id === settings.soundbot.personaId)?.name ??
-        PERSONAS[0].name);
+  const ready = useHydrated();
+  const voice = !ready
+    ? "…"
+    : !settings.soundbot.enabled
+      ? "off"
+      : settings.soundbot.personaId === CUSTOM_PERSONA_ID
+        ? "Custom"
+        : (PERSONAS.find((p) => p.id === settings.soundbot.personaId)?.name ??
+          PERSONAS[0].name);
 
   return (
     <div className="menu">
@@ -72,58 +77,96 @@ export function Menu({
         </div>
       </header>
 
-      <ul className="modes" aria-label="Choose a difficulty">
-        {DIFFICULTY_ORDER.map((id) => {
-          const d = DIFFICULTIES[id];
-          const unlocked = isUnlocked(progress, id);
-          if (d.hidden && !unlocked) return null;
-          const best = progress.best[id];
-          return (
-            <li
-              key={id}
-              className={`mode mode-${id} ${freshUnlock === id ? "is-fresh" : ""}`}
-            >
-              <button
-                className="mode-btn"
-                disabled={!unlocked}
-                onClick={() => onStart(id)}
-              >
-                <span className="mode-marker" aria-hidden>
-                  ▸
-                </span>
-                <span className="mode-name scratch">
-                  {d.label}
-                  {freshUnlock === id && <span className="mode-new">new</span>}
-                </span>
-                <span className="mode-detail">
-                  {unlocked ? (
-                    detail(id)
-                  ) : (
-                    <span className="mode-lock">{lockText(id)}</span>
-                  )}
-                </span>
-                <span className="mode-side">
-                  {unlocked &&
-                    (best !== null ? (
+      {!ready ? (
+        // The page is static HTML, so until the browser has read the saved
+        // progress it only knows the defaults (everything locked). Show this
+        // instead of a locked list that would flip a moment later.
+        <ul
+          className="modes is-loading"
+          aria-busy="true"
+          aria-label="Loading your progress"
+        >
+          {DIFFICULTY_ORDER.filter((id) => !DIFFICULTIES[id].hidden).map(
+            (id, i) => (
+              <li key={id} className="mode">
+                <div className="mode-btn">
+                  <span className="mode-marker" aria-hidden />
+                  <span className="mode-name scratch">
+                    {DIFFICULTIES[id].label}
+                  </span>
+                  <span className="mode-detail">
+                    {i === 0 ? (
                       <>
-                        best{" "}
-                        <strong>
-                          {best}
-                          {d.rounds !== null && `/${d.rounds}`}
-                        </strong>
+                        Retrieving your file
+                        <span className="loading-cursor" aria-hidden>
+                          ▍
+                        </span>
                       </>
                     ) : (
-                      "not attempted"
-                    ))}
-                  {progress.cleared[id] && d.goal !== null && (
-                    <span className="mode-passed">passed</span>
-                  )}
-                </span>
-              </button>
-            </li>
-          );
-        })}
-      </ul>
+                      " "
+                    )}
+                  </span>
+                </div>
+              </li>
+            ),
+          )}
+        </ul>
+      ) : (
+        <ul className="modes" aria-label="Choose a difficulty">
+          {DIFFICULTY_ORDER.map((id) => {
+            const d = DIFFICULTIES[id];
+            const unlocked = isUnlocked(progress, id);
+            if (d.hidden && !unlocked) return null;
+            const best = progress.best[id];
+            return (
+              <li
+                key={id}
+                className={`mode mode-${id} ${freshUnlock === id ? "is-fresh" : ""}`}
+              >
+                <button
+                  className="mode-btn"
+                  disabled={!unlocked}
+                  onClick={() => onStart(id)}
+                >
+                  <span className="mode-marker" aria-hidden>
+                    ▸
+                  </span>
+                  <span className="mode-name scratch">
+                    {d.label}
+                    {freshUnlock === id && (
+                      <span className="mode-new">new</span>
+                    )}
+                  </span>
+                  <span className="mode-detail">
+                    {unlocked ? (
+                      detail(id)
+                    ) : (
+                      <span className="mode-lock">{lockText(id)}</span>
+                    )}
+                  </span>
+                  <span className="mode-side">
+                    {unlocked &&
+                      (best !== null ? (
+                        <>
+                          best{" "}
+                          <strong>
+                            {best}
+                            {d.rounds !== null && `/${d.rounds}`}
+                          </strong>
+                        </>
+                      ) : (
+                        "not attempted"
+                      ))}
+                    {progress.cleared[id] && d.goal !== null && (
+                      <span className="mode-passed">passed</span>
+                    )}
+                  </span>
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      )}
 
       <footer className="menu-foot">
         <button className="act" onClick={onOpenVoice}>
@@ -135,6 +178,9 @@ export function Menu({
         <span className="menu-hint">
           keys <kbd>1</kbd>–<kbd>9</kbd> answer · <kbd>esc</kbd> quits a run
         </span>
+        <Link className="menu-link" href="/privacy">
+          privacy
+        </Link>
       </footer>
     </div>
   );

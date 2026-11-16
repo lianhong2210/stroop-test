@@ -60,6 +60,21 @@ export function useStore<T>(store: PersistentStore<T>): T {
   return useSyncExternalStore(store.subscribe, store.get, store.getServer);
 }
 
+const noopSubscribe = () => () => {};
+
+/**
+ * False in the static HTML and during hydration, true once the page runs in
+ * the browser and saved data (localStorage) can be read. Use it to show a
+ * loading state instead of defaults that would flip a moment later.
+ */
+export function useHydrated(): boolean {
+  return useSyncExternalStore(
+    noopSubscribe,
+    () => true,
+    () => false,
+  );
+}
+
 export function isRecord(v: unknown): v is Record<string, unknown> {
   return typeof v === "object" && v !== null && !Array.isArray(v);
 }

@@ -17,7 +17,7 @@ interface Props {
   settings: Settings;
   voices: SpeechSynthesisVoice[];
   onClose: () => void;
-  /** Player chose "Continue without sound" this visit: all speech is off. */
+  /** Player chose "Continue without sound": all speech is off. */
   muted: boolean;
   onUnmute: () => void;
 }
@@ -89,7 +89,7 @@ export function SoundbotPanel({
 
         {muted && (
           <p className="warn" style={{ marginBottom: 12 }}>
-            Sound is off for this visit, so the voice can&apos;t play.{" "}
+            Sound is off, so the voice can&apos;t play.{" "}
             <button className="act act-quiet" onClick={onUnmute}>
               <u>Turn sound on</u>
             </button>

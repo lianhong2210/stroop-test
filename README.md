@@ -25,7 +25,7 @@ The results page measures your own Stroop effect: how much slower you answered w
 
 ## How to play
 
-1. When the page loads, choose **Turn on sound** (headphones recommended) or **Continue without sound**.
+1. On your first visit, choose **Turn on sound** (headphones recommended) or **Continue without sound**. The game remembers your answer for 30 days, then asks again. On later visits the music starts at your first tap or key press, because browsers block sound until you interact with the page.
 2. Pick a difficulty from the menu.
 3. After a 3‑2‑1 countdown, a word appears, for example **GREEN** printed in red ink.
 4. Press the button for the **ink colour**. Here that's **RED**, not GREEN.
@@ -127,9 +127,9 @@ Open **Settings** from the menu to switch on or off:
 - **Sound effects**
 - **Ambience**
 
-**Voice settings** and **Erase progress** are also there. Settings and progress are stored in your browser's `localStorage` (`stroop.settings.v1` and `stroop.progress.v1`), so they stay on that device.
+**Voice settings** and **Erase progress** are also there. Settings, progress and your sound answer are stored in your browser's `localStorage` (`stroop.settings.v1`, `stroop.progress.v1` and `stroop.sound.v1`), so they stay on that device.
 
-If you chose **Continue without sound** on the opening screen, Settings shows a link to turn sound back on for that visit.
+If you chose **Continue without sound** on the opening screen, Settings shows a link to turn sound back on. That change is remembered too.
 
 ## Accessibility
 

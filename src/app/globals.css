@@ -226,6 +226,12 @@ kbd {
   transition: opacity 700ms ease;
 }
 
+/* Returning player (set by the script in layout.tsx before first paint):
+   keep the screen hidden while React loads and confirms the saved answer. */
+html[data-sound="known"] .gate {
+  display: none;
+}
+
 .gate.is-leaving {
   opacity: 0;
   pointer-events: none;
@@ -563,6 +569,39 @@ kbd {
 
 .mode-lock {
   color: var(--warn);
+}
+
+/* while saved progress is being read: names flicker like a weak signal */
+.modes.is-loading .mode-btn {
+  cursor: progress;
+}
+
+.modes.is-loading .mode-name {
+  color: var(--faint);
+  animation: signal 2.4s steps(1) infinite;
+}
+
+.modes.is-loading .mode:nth-child(2) .mode-name { animation-delay: -0.8s; }
+.modes.is-loading .mode:nth-child(3) .mode-name { animation-delay: -1.6s; }
+
+.modes.is-loading .mode-detail {
+  color: var(--dim);
+}
+
+@keyframes signal {
+  0%, 100% { opacity: 1; }
+  30% { opacity: 0.45; }
+  34% { opacity: 1; }
+  70% { opacity: 0.7; }
+}
+
+.loading-cursor {
+  margin-left: 2px;
+  animation: cursor-blink 1s steps(1) infinite;
+}
+
+@keyframes cursor-blink {
+  50% { opacity: 0; }
 }
 
 .mode-new {
@@ -1392,6 +1431,62 @@ kbd {
   color: var(--blood);
 }
 
+/* ---------- privacy policy page ---------- */
+
+.policy-shell {
+  align-items: center;
+}
+
+.policy {
+  z-index: 1;
+  width: 100%;
+  max-width: 720px;
+  margin: clamp(8px, 4vh, 48px) 0;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.policy h3 {
+  margin: 26px 0 6px;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 20px;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.policy p {
+  margin: 0 0 10px;
+}
+
+.policy ul {
+  margin: 0 0 10px;
+  padding-left: 1.2em;
+}
+
+.policy li {
+  margin-bottom: 4px;
+}
+
+.policy a:not(.act) {
+  color: inherit;
+}
+
+.paper a.act {
+  text-decoration: none;
+}
+
+.menu-link {
+  font-size: 14px;
+  color: var(--faint);
+  text-decoration: none;
+  border-bottom: 1px dotted currentColor;
+}
+
+.menu-link:hover {
+  color: var(--dim);
+}
+
 /* ============================================================
    SMALL SCREENS
    ============================================================ */
@@ -1412,6 +1507,9 @@ kbd {
   }
   .menu-hint {
     display: none;
+  }
+  .menu-link {
+    margin-left: auto;
   }
   .viewfinder {
     padding: 14px;

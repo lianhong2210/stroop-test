@@ -7,7 +7,8 @@ interface Props {
 }
 
 /**
- * Shown on every load. Browsers block audio until the player interacts, so
+ * Shown on a first visit, and again once the remembered answer expires
+ * (see soundChoice.ts). Browsers block audio until the player interacts, so
  * this click is also what unlocks the music, effects and voice.
  */
 export function SoundGate({ onChoose }: Props) {

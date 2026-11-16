@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Anton, Special_Elite } from "next/font/google";
+import { SOUND_CHOICE_PRELOAD_SCRIPT } from "@/lib/soundChoiceKey";
 import "./globals.css";
 
 /* Display: heavy condensed, scratched via CSS mask. Also the stimulus word. */
@@ -30,7 +31,16 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${display.variable} ${type.variable}`}>
+    // suppressHydrationWarning: the script below may add data-sound to <html>
+    // before React loads.
+    <html
+      lang="en"
+      className={`${display.variable} ${type.variable}`}
+      suppressHydrationWarning
+    >
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: SOUND_CHOICE_PRELOAD_SCRIPT }} />
+      </head>
       <body>{children}</body>
     </html>
   );

@@ -6,6 +6,7 @@ import { pickLine, type Verdict } from "@/lib/narration";
 import { DIFFICULTIES, nextUnlock, type DifficultyId } from "@/lib/difficulty";
 import { progressStore, resetProgress } from "@/lib/progress";
 import { settingsStore } from "@/lib/settings";
+import { rememberSoundChoice, soundChoiceStore } from "@/lib/soundChoice";
 import { primeAudio, setMuted, setSfxEnabled, sfx } from "@/lib/sfx";
 import {
   setSpeechMuted,
@@ -30,9 +31,14 @@ export function StroopGame() {
   const settings = useStore(settingsStore);
   const voices = useVoices();
 
-  const [gate, setGate] = useState(true);
+  // The sound screen shows on a first visit, or once the remembered answer
+  // has expired. Otherwise the saved answer is used straight away.
+  const soundChoice = useStore(soundChoiceStore);
+  const [gateClosing, setGateClosing] = useState(false);
+  const gate = soundChoice === null || gateClosing;
   const [audioReady, setAudioReady] = useState(false);
-  const [muted, setMutedState] = useState(false);
+  const [audioFailed, setAudioFailed] = useState(false);
+  const muted = soundChoice?.on === false || audioFailed;
   const [screen, setScreen] = useState<Screen>("menu");
   const [mode, setMode] = useState<DifficultyId>("easy");
   const [runKey, setRunKey] = useState(0);
@@ -68,23 +74,56 @@ export function StroopGame() {
   useEffect(() => playScene(scene), [scene]);
   useEffect(() => () => stopMusic(), []);
 
-  const applyMute = (on: boolean) => {
-    setMutedState(on);
-    setMuted(on);
-    setSpeechMuted(on);
-  };
+  // The pre-paint hint from layout.tsx has done its job once React has read
+  // the saved answer (that re-render is flushed synchronously, before any
+  // timer). Drop it, so if React decides the screen is needed after all, the
+  // screen can show. A timer rather than requestAnimationFrame, which never
+  // fires in a background tab.
+  useEffect(() => {
+    const id = window.setTimeout(() =>
+      document.documentElement.removeAttribute("data-sound"),
+    );
+    return () => window.clearTimeout(id);
+  }, []);
 
-  const chooseSound = (on: boolean) => {
-    // Audio setup must never trap the player on this screen: if the device
-    // refuses (old browser, locked-down webview), carry on silently.
+  useEffect(() => {
+    setMuted(muted);
+    setSpeechMuted(muted);
+  }, [muted]);
+
+  // Audio setup must never trap the player: if the device refuses (old
+  // browser, locked-down webview), carry on silently.
+  const unlockAudio = useCallback(() => {
     try {
       primeAudio();
-      applyMute(!on);
     } catch {
-      setMutedState(true);
+      setAudioFailed(true);
     }
     setAudioReady(true);
-    setTimeout(() => setGate(false), 700);
+  }, []);
+
+  // A returning player skips the sound screen, so there was no tap to unlock
+  // audio (browsers block it until the player interacts). Unlock on their
+  // first tap or key press instead; the menu music starts then.
+  useEffect(() => {
+    if (gate || audioReady) return;
+    const events = ["pointerup", "touchend", "click", "keydown"] as const;
+    const opts = { capture: true } as const;
+    events.forEach((e) => window.addEventListener(e, unlockAudio, opts));
+    return () =>
+      events.forEach((e) => window.removeEventListener(e, unlockAudio, opts));
+  }, [gate, audioReady, unlockAudio]);
+
+  const unmute = useCallback(() => {
+    setAudioFailed(false);
+    rememberSoundChoice(true);
+  }, []);
+
+  const chooseSound = (on: boolean) => {
+    unlockAudio();
+    setGateClosing(true);
+    rememberSoundChoice(on);
+    setTimeout(() => setGateClosing(false), 700);
   };
 
   const narrate = useCallback(
@@ -212,7 +251,7 @@ export function StroopGame() {
         <SettingsPanel
           settings={settings}
           muted={muted}
-          onUnmute={() => applyMute(false)}
+          onUnmute={unmute}
           onOpenVoice={() => setModal("voice")}
           onReset={reset}
           onClose={closeModal}
@@ -225,7 +264,7 @@ export function StroopGame() {
           voices={voices}
           onClose={closeModal}
           muted={muted}
-          onUnmute={() => applyMute(false)}
+          onUnmute={unmute}
         />
       )}
 

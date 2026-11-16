@@ -60,7 +60,7 @@ export function SettingsPanel({
 
         {muted && (
           <p className="warn" style={{ marginBottom: 12 }}>
-            Sound is off for this visit.{" "}
+            Sound is off.{" "}
             <button className="act act-quiet" onClick={onUnmute}>
               <u>Turn it on</u>
             </button>
