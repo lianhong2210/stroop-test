@@ -1783,3 +1783,16 @@ html[data-sound="known"] .gate {
   clip-path: inset(50%);
   white-space: nowrap;
 }
+
+/* Google's own sign-in button (drawn by Google in an iframe) */
+.google-actions {
+  justify-content: flex-start;
+}
+
+.google-btn {
+  min-height: 44px;
+}
+
+.google-btn:empty {
+  display: none;
+}

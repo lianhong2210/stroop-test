@@ -89,6 +89,33 @@ create trigger on_auth_user_created
   after insert on auth.users
   for each row execute function public.handle_new_user();
 
+-- Players who signed in before this migration ran get a profile too.
+do $$
+declare
+  u record;
+  attempt int;
+begin
+  for u in
+    select a.id from auth.users a
+    where not exists (select 1 from public.profiles p where p.id = a.id)
+  loop
+    attempt := 0;
+    loop
+      begin
+        insert into public.profiles (id, username)
+        values (u.id, 'Subject-' || lpad(floor(random() * 100000)::int::text, 5, '0'));
+        exit;
+      exception when unique_violation then
+        attempt := attempt + 1;
+        if attempt >= 25 then
+          raise;
+        end if;
+      end;
+    end loop;
+  end loop;
+end;
+$$;
+
 -------------------------------------------------------------------------------
 -- runs (service role only)
 -------------------------------------------------------------------------------

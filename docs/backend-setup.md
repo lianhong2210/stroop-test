@@ -20,7 +20,7 @@ Work through the parts in order. Each one needs a value from the part before it.
 | Supabase project URL | `https://abcd1234.supabase.co` | yes | Pages env, `.env.local` |
 | Supabase project ref | `abcd1234` | yes | Google redirect URI, Supabase CLI |
 | Supabase publishable key | `sb_publishable_…` (or the legacy `anon` key) | yes | Pages env, `.env.local` |
-| Google client ID | `…apps.googleusercontent.com` | yes | Supabase Google provider |
+| Google client ID | `…apps.googleusercontent.com` | yes | Supabase Google provider, Pages env, `.env.local` |
 | Google client secret | `GOCSPX-…` | **no** | Supabase Google provider only |
 | Turnstile site key | `0x4AAAA…` | yes | Pages env, `.env.local` |
 | Turnstile secret key | `0x4AAAA…` | **no** | Supabase Edge Function secrets only |
@@ -77,8 +77,9 @@ Open <https://console.cloud.google.com> and sign in with the Google account that
 ### 2.3 OAuth client
 1. Open **Clients → Create client**.
 2. **Application type:** Web application. **Name:** `Stroop web`.
-3. **Authorized JavaScript origins:**
+3. **Authorized JavaScript origins:** the game's "Sign in with Google" button opens Google's pop-up from these pages, so every address you play on must be listed.
    - `https://stroop.lianhonglim.my`
+   - `http://localhost`. Google also needs the bare `localhost`, without a port, for local testing.
    - `http://localhost:3000`
    - `http://localhost:3100`
 4. **Authorized redirect URIs:** add exactly one:
@@ -173,6 +174,7 @@ Cloudflare also has dummy keys for automated tests, such as the always-passing s
    | `NEXT_PUBLIC_SUPABASE_URL` | `https://<project-ref>.supabase.co` |
    | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | the publishable (or `anon`) key |
    | `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | the Turnstile site key |
+   | `NEXT_PUBLIC_GOOGLE_CLIENT_ID` | the Google **client ID** from Part 2.3 (`….apps.googleusercontent.com`), never the secret |
 
 3. Leave the build settings as they are: build command `npm run build`, output directory `out`.
 4. `NEXT_PUBLIC_…` values are copied into the page at build time. **After changing any of them, start a new deployment** (push a commit, or *Deployments → Retry deployment*).
@@ -188,6 +190,7 @@ Create `.env.local` in the project root. It is already git-ignored.
 NEXT_PUBLIC_SUPABASE_URL=https://<project-ref>.supabase.co
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
 NEXT_PUBLIC_TURNSTILE_SITE_KEY=0x4AAAA...
+NEXT_PUBLIC_GOOGLE_CLIENT_ID=1234567890-abc.apps.googleusercontent.com
 ```
 
 Restart `npm run dev` after creating or changing it.

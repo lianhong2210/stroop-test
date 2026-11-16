@@ -20,7 +20,9 @@ export default function PrivacyPage() {
       <div className="room-light" aria-hidden />
       <article className="paper policy">
         <h2>Privacy</h2>
-        <p className="paper-meta">Stroop · stroop.lianhonglim.my · last updated {UPDATED}</p>
+        <p className="paper-meta">
+          Stroop · stroop.lianhonglim.my · last updated {UPDATED}
+        </p>
 
         <hr />
 
@@ -40,15 +42,17 @@ export default function PrivacyPage() {
         <h3>Signing in with Google</h3>
         <p>
           Signing in is optional and only needed to put scores on the
-          leaderboard. When you sign in, Google shares your email address,
-          name and profile picture with the game&apos;s sign-in service. These
-          are stored as your account record so you can stay signed in. The
-          email address is never shown to other players, and your Google name
-          and picture are not used in the game.
+          leaderboard. Google&apos;s sign-in button is loaded from Google only
+          when you open the sign-in form. When you sign in, Google shares your
+          email address, name and profile picture with the game&apos;s sign-in
+          service. These are stored as your account record so you can stay
+          signed in. The email address is never shown to other players, and your
+          Google name and picture are not used in the game.
         </p>
         <p>
           On the leaderboard you appear under a username. You get a random one
-          (for example &ldquo;Subject-4821&rdquo;) and can change it at any time.
+          (for example &ldquo;Subject-4821&rdquo;) and can change it at any
+          time.
         </p>
 
         <h3>What is stored for your account</h3>
@@ -73,8 +77,8 @@ export default function PrivacyPage() {
         <p>
           When you start a run that can count for the leaderboard, Cloudflare
           Turnstile checks in the background that you are not a bot. Cloudflare
-          processes technical information about your browser and connection
-          to do this. There is no puzzle to solve.
+          processes technical information about your browser and connection to
+          do this. There is no puzzle to solve.
         </p>
 
         <h3>Services the game uses</h3>
@@ -85,12 +89,12 @@ export default function PrivacyPage() {
             details when you load the page.
           </li>
           <li>
-            <strong>Supabase</strong> stores accounts, usernames and scores,
-            and handles sign-in.
+            <strong>Supabase</strong> stores accounts, usernames and scores, and
+            handles sign-in.
           </li>
           <li>
-            <strong>Google</strong> provides the &ldquo;Sign in with Google&rdquo;
-            option.
+            <strong>Google</strong> provides the &ldquo;Sign in with
+            Google&rdquo; option.
           </li>
         </ul>
         <p>
@@ -107,8 +111,8 @@ export default function PrivacyPage() {
             <>
               {" "}
               You can also email{" "}
-              <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a> to ask
-              for your data to be deleted or to ask what is stored.
+              <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a> to ask for
+              your data to be deleted or to ask what is stored.
             </>
           )}
         </p>

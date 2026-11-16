@@ -10,6 +10,7 @@ import {
   USERNAME_PATTERN,
   type AuthState,
 } from "@/lib/auth";
+import { googleButtonConfigured, mountGoogleButton } from "@/lib/googleSignIn";
 
 interface Props {
   auth: AuthState;
@@ -29,6 +30,32 @@ export function AccountPanel({ auth, onClose }: Props) {
     setLastCurrent(current);
     if (name === lastCurrent) setName(current);
   }
+
+  // Google's own button (pop-up on this site). Falls back to the redirect
+  // flow if it isn't configured or Google's script can't load.
+  const googleRef = useRef<HTMLDivElement>(null);
+  const [google, setGoogle] = useState<"loading" | "ready" | "failed">(() =>
+    googleButtonConfigured() ? "loading" : "failed",
+  );
+  const signedOut = auth.status === "signed-out";
+  useEffect(() => {
+    const el = googleRef.current;
+    if (!signedOut || !el) return;
+    let alive = true;
+    mountGoogleButton(
+      el,
+      (err) => {
+        if (alive) setError(err);
+      },
+      Math.min(320, Math.max(200, el.parentElement?.clientWidth ?? 260)),
+    ).then(
+      () => alive && setGoogle("ready"),
+      () => alive && setGoogle("failed"),
+    );
+    return () => {
+      alive = false;
+    };
+  }, [signedOut]);
 
   useEffect(() => {
     ref.current?.focus({ preventScroll: true });
@@ -152,14 +179,27 @@ export function AccountPanel({ auth, onClose }: Props) {
               <Link href="/privacy">Privacy</Link>
             </p>
             {error && <p className="warn">{error}</p>}
-            <div className="paper-actions">
-              <button
-                className="act act-primary"
-                disabled={busy || auth.status === "loading"}
-                onClick={() => void run(signInWithGoogle)}
-              >
-                Sign in with Google
-              </button>
+            <div className="paper-actions google-actions">
+              {google !== "failed" && (
+                <div ref={googleRef} className="google-btn" />
+              )}
+              {google === "loading" && (
+                <span className="lb-status">
+                  Loading Google sign-in
+                  <span className="loading-cursor" aria-hidden>
+                    ▍
+                  </span>
+                </span>
+              )}
+              {google === "failed" && (
+                <button
+                  className="act act-primary"
+                  disabled={busy || auth.status === "loading"}
+                  onClick={() => void run(signInWithGoogle)}
+                >
+                  Sign in with Google
+                </button>
+              )}
             </div>
           </>
         )}
