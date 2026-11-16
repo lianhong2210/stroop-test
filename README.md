@@ -225,6 +225,8 @@ src/
     icon2.png          192 px icon for phones
     apple-icon.png     iPhone/iPad home-screen icon
     manifest.webmanifest  web app manifest (Android home screen)
+    opengraph-image.jpg   1200×630 link preview (WhatsApp, Telegram, Facebook…)
+    twitter-image.jpg     same image for X
   components/
     StroopGame.tsx     screen flow, music, unlocks
     SoundGate.tsx      opening "turn on sound" screen
@@ -236,6 +238,7 @@ src/
     AccountPanel.tsx   sign in, username, sign out, delete account
     LeaderboardPanel.tsx  top 5 per mode
     AuthCallback.tsx   finishes Google sign-in
+    ShareButton.tsx    share sheet on phones, copy link elsewhere
   lib/
     difficulty.ts      mode names and text (rules are in _shared/stroop.ts)
     colors.ts          the nine inks

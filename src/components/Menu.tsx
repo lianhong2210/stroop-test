@@ -12,6 +12,7 @@ import { isUnlocked, type Progress } from "@/lib/progress";
 import { CUSTOM_PERSONA_ID, PERSONAS } from "@/lib/soundbot";
 import type { Settings } from "@/lib/settings";
 import { useHydrated } from "@/lib/store";
+import { ShareButton } from "./ShareButton";
 
 interface Props {
   progress: Progress;
@@ -208,6 +209,7 @@ export function Menu({
             </button>
           </>
         )}
+        <ShareButton />
         <span className="menu-hint">
           keys <kbd>1</kbd>–<kbd>9</kbd> answer · <kbd>esc</kbd> quits a run
         </span>

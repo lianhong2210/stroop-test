@@ -1,5 +1,11 @@
 import type { Metadata, Viewport } from "next";
 import { Anton, Special_Elite } from "next/font/google";
+import {
+  SITE_DESCRIPTION,
+  SITE_NAME,
+  SITE_TITLE,
+  SITE_URL,
+} from "@/lib/site";
 import { SOUND_CHOICE_PRELOAD_SCRIPT } from "@/lib/soundChoiceKey";
 import "./globals.css";
 
@@ -17,10 +23,26 @@ const type = Special_Elite({
   weight: "400",
 });
 
+// Link previews (WhatsApp, Telegram, iMessage, Facebook, X, Discord…): the
+// image comes from opengraph-image.jpg / twitter-image.jpg in this folder.
+// Preview fetchers need absolute URLs, hence metadataBase.
 export const metadata: Metadata = {
-  title: "Stroop Test",
-  description:
-    "Name the ink, not the word. A Stroop-effect reaction game with a voice that reads the words aloud to throw you off.",
+  metadataBase: new URL(SITE_URL),
+  title: SITE_TITLE,
+  description: SITE_DESCRIPTION,
+  openGraph: {
+    type: "website",
+    url: "/",
+    siteName: SITE_NAME,
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+    locale: "en",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+  },
 };
 
 export const viewport: Viewport = {

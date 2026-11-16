@@ -1796,3 +1796,33 @@ html[data-sound="known"] .gate {
 .google-btn:empty {
   display: none;
 }
+
+/* ---------- share ---------- */
+
+.share {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.share-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.share-icon {
+  width: 18px;
+  height: 18px;
+  flex: none;
+  transform: translateY(-1px);
+}
+
+.share-status {
+  font-size: 14px;
+  color: var(--dim);
+}
+
+.share-status:empty {
+  display: none;
+}
