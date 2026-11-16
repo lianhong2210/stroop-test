@@ -218,6 +218,7 @@ src/
     layout.tsx         fonts and page metadata
     page.tsx           mounts the game
     privacy/           privacy policy
+    terms/             terms of service
     auth/callback/     where Google sign-in returns to
     globals.css        all styling
     favicon.ico        16/32/48 px favicon (the misprinted S)

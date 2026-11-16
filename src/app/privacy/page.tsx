@@ -1,16 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { CONTACT_EMAIL } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Privacy · Stroop Test",
   description: "What the Stroop game stores about you, and why.",
 };
-
-/**
- * Optional contact address for privacy requests. Leave empty to point players
- * only at the in-game "Delete account" option.
- */
-const CONTACT_EMAIL = "";
 
 const UPDATED = "16 November 2026";
 
@@ -125,7 +120,8 @@ export default function PrivacyPage() {
         <h3>Changes</h3>
         <p>
           If this policy changes, the date at the top of this page will be
-          updated.
+          updated. The rules for playing are in the{" "}
+          <Link href="/terms">terms of service</Link>.
         </p>
 
         <div className="paper-actions">

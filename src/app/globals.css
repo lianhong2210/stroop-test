@@ -1690,6 +1690,11 @@ html[data-sound="known"] .gate {
   text-decoration: none;
 }
 
+.menu-links {
+  display: inline-flex;
+  gap: 14px;
+}
+
 .menu-link {
   font-size: 14px;
   color: var(--faint);
@@ -1722,7 +1727,7 @@ html[data-sound="known"] .gate {
   .menu-hint {
     display: none;
   }
-  .menu-link {
+  .menu-links {
     margin-left: auto;
   }
   .viewfinder {

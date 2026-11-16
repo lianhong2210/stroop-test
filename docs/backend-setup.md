@@ -62,6 +62,7 @@ Open <https://console.cloud.google.com> and sign in with the Google account that
 5. Open **Branding**:
    - **Application home page:** `https://stroop.lianhonglim.my`
    - **Privacy policy link:** `https://stroop.lianhonglim.my/privacy`. **Required:** Google won't let you publish an External app without one. The page is in the game at `src/app/privacy/page.tsx`, so deploy it before filling this in.
+   - **Terms of service link:** `https://stroop.lianhonglim.my/terms`. Optional for publishing, but include it when you request brand verification.
    - **Authorized domains:** add `lianhonglim.my` and `<project-ref>.supabase.co`.
    - **Don't upload a logo.** A logo makes Google require brand verification before the consent screen shows it.
 6. Open **Data Access → Add or remove scopes** and tick only these three:

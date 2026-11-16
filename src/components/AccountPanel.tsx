@@ -176,7 +176,8 @@ export function AccountPanel({ auth, onClose }: Props) {
               Playing doesn&apos;t need an account. Signing in with Google
               ties your best scores to a name of your choosing, so they can
               appear on the leaderboard. Your email is never shown.{" "}
-              <Link href="/privacy">Privacy</Link>
+              <Link href="/privacy">Privacy</Link> ·{" "}
+              <Link href="/terms">Terms</Link>
             </p>
             {error && <p className="warn">{error}</p>}
             <div className="paper-actions google-actions">

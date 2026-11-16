@@ -213,9 +213,14 @@ export function Menu({
         <span className="menu-hint">
           keys <kbd>1</kbd>–<kbd>9</kbd> answer · <kbd>esc</kbd> quits a run
         </span>
-        <Link className="menu-link" href="/privacy">
-          privacy
-        </Link>
+        <span className="menu-links">
+          <Link className="menu-link" href="/privacy">
+            privacy
+          </Link>
+          <Link className="menu-link" href="/terms">
+            terms
+          </Link>
+        </span>
       </footer>
     </div>
   );
