@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/pageMetadata";
 import Link from "next/link";
 import { CONTACT_EMAIL } from "@/lib/site";
 
-export const metadata: Metadata = {
-  title: "Terms · Stroop",
-  description: "The rules for playing Stroop and using its leaderboard.",
-};
+export const metadata: Metadata = pageMetadata(
+  "Terms",
+  "The rules for playing Stroop and using its leaderboard.",
+  "/terms",
+);
 
 const UPDATED = "16 November 2026";
 
@@ -14,7 +16,7 @@ export default function TermsPage() {
     <main className="shell policy-shell">
       <div className="room-light" aria-hidden />
       <article className="paper policy">
-        <h2>Terms of service</h2>
+        <h1>Terms of service</h1>
         <p className="paper-meta">
           Stroop · stroop.lianhonglim.my · last updated {UPDATED}
         </p>
@@ -27,7 +29,7 @@ export default function TermsPage() {
           don&apos;t agree, please don&apos;t use the game.
         </p>
 
-        <h3>Health warning</h3>
+        <h2>Health warning</h2>
         <p>
           The game uses flashing colours, flickering light effects, screen
           shake and sudden sounds. If you have photosensitive epilepsy or are
@@ -36,7 +38,7 @@ export default function TermsPage() {
           &ldquo;reduce motion&rdquo; setting switches most effects off.
         </p>
 
-        <h3>Accounts</h3>
+        <h2>Accounts</h2>
         <ul>
           <li>
             You can play without an account. Signing in with Google is
@@ -54,7 +56,7 @@ export default function TermsPage() {
           </li>
         </ul>
 
-        <h3>Fair play</h3>
+        <h2>Fair play</h2>
         <p>
           Leaderboard scores must come from you playing the game yourself.
           Don&apos;t use bots, scripts, auto-clickers or other automation,
@@ -66,14 +68,14 @@ export default function TermsPage() {
           them may be suspended or deleted.
         </p>
 
-        <h3>The leaderboard</h3>
+        <h2>The leaderboard</h2>
         <p>
           The leaderboard is offered for fun. It may be corrected, reset or
           removed at any time, for example after a rule change or to undo
           cheating. Rankings carry no prize or reward.
         </p>
 
-        <h3>The game itself</h3>
+        <h2>The game itself</h2>
         <p>
           The game, its code, artwork, music and sounds belong to its
           developer, except the fonts (Anton and Special Elite, used under the
@@ -95,13 +97,13 @@ export default function TermsPage() {
           medical, psychological or cognitive assessment.
         </p>
 
-        <h3>Privacy</h3>
+        <h2>Privacy</h2>
         <p>
           What the game stores, and how to delete it, is described in the{" "}
           <Link href="/privacy">privacy policy</Link>.
         </p>
 
-        <h3>Changes</h3>
+        <h2>Changes</h2>
         <p>
           These terms may be updated; the date at the top will change when
           they are. Continuing to play after a change means you accept the

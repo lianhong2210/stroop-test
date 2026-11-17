@@ -2,8 +2,13 @@
 export const SITE_URL = "https://stroop.lianhonglim.my";
 export const SITE_NAME = "Stroop";
 export const SITE_TITLE = "Stroop";
+/**
+ * Search-result title for the home page: the name first (it must match the
+ * Google sign-in app name), then what people search for.
+ */
+export const SITE_SEO_TITLE = "Stroop · Horror Stroop Effect Test, Play Free Online";
 export const SITE_DESCRIPTION =
-  "Name the ink, not the word. A horror Stroop-effect reaction game with a voice that reads the words aloud to throw you off.";
+  "Name the ink, not the word. A free online Stroop effect test turned horror game, with a voice that reads every colour word aloud to trip you up.";
 /**
  * Optional contact address shown on the privacy and terms pages. Empty: the
  * pages point players to the in-game "Delete account" option instead.

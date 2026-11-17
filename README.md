@@ -226,8 +226,9 @@ public/
   icons/               192/512 px and maskable app icons
 src/
   app/
-    layout.tsx         fonts and page metadata
+    layout.tsx         fonts, page metadata and structured data (search engines)
     page.tsx           mounts the game
+    how-to-play/       rules, modes and the Stroop effect, for players and search engines
     privacy/           privacy policy
     terms/             terms of service
     auth/callback/     where Google sign-in returns to
@@ -239,6 +240,8 @@ src/
     manifest.webmanifest  web app manifest (Android home screen)
     opengraph-image.jpg   1200×630 link preview (WhatsApp, Telegram, Facebook…)
     twitter-image.jpg     same image for X
+    robots.ts          builds robots.txt
+    sitemap.ts         builds sitemap.xml (add new pages here)
   components/
     StroopGame.tsx     screen flow, music, unlocks
     SoundGate.tsx      opening "turn on sound" screen

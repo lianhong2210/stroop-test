@@ -1,8 +1,9 @@
 {
   "name": "Stroop",
   "short_name": "Stroop",
-  "description": "Name the ink, not the word. A Stroop-effect reaction game.",
+  "description": "Name the ink, not the word. A free online Stroop effect test turned horror game.",
   "start_url": "/",
+  "categories": ["games", "entertainment"],
   "display": "standalone",
   "background_color": "#080807",
   "theme_color": "#080807",

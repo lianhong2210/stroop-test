@@ -46,7 +46,7 @@ export function SoundGate({ onChoose }: Props) {
           <rect x="8" y="37" width="11" height="18" rx="3" />
           <rect x="45" y="37" width="11" height="18" rx="3" />
         </svg>
-        <h1 id="gate-title">This test speaks to you</h1>
+        <h2 id="gate-title">This test speaks to you</h2>
         <p>
           A voice reads every word aloud to throw you off, and the room is
           never quite silent. Play with sound on, and wear headphones if you

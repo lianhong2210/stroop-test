@@ -265,7 +265,7 @@ html[data-sound="known"] .gate {
   opacity: 0.85;
 }
 
-.gate h1 {
+.gate h2 {
   margin: 0;
   font-family: var(--font-display);
   font-weight: 400;
@@ -1020,6 +1020,7 @@ html[data-sound="known"] .gate {
   padding: clamp(22px, 4vw, 40px);
 }
 
+.paper h1,
 .paper h2 {
   margin: 0;
   font-family: var(--font-display);
@@ -1673,6 +1674,7 @@ html[data-sound="known"] .gate {
   line-height: 1.6;
 }
 
+.policy h2,
 .policy h3 {
   margin: 26px 0 6px;
   font-family: var(--font-display);
@@ -1697,6 +1699,14 @@ html[data-sound="known"] .gate {
 
 .policy a:not(.act) {
   color: inherit;
+}
+
+.policy kbd {
+  color: inherit;
+}
+
+.policy .paper-actions {
+  margin: 14px 0 4px;
 }
 
 .paper a.act {

@@ -214,6 +214,9 @@ export function Menu({
           keys <kbd>1</kbd>–<kbd>9</kbd> answer · <kbd>esc</kbd> quits a run
         </span>
         <span className="menu-links">
+          <Link className="menu-link" href="/how-to-play">
+            how to play
+          </Link>
           <Link className="menu-link" href="/privacy">
             privacy
           </Link>
