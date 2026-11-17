@@ -654,8 +654,13 @@ html[data-sound="known"] .gate {
 
 .menu-hint {
   margin-left: auto;
-  color: var(--faint);
+  /* Pure white, not --bone: the vignette darkens the corners where this sits. */
+  color: #fff;
   font-size: 14px;
+}
+
+.menu-hint kbd {
+  color: #fff;
 }
 
 /* ============================================================
@@ -1705,13 +1710,14 @@ html[data-sound="known"] .gate {
 
 .menu-link {
   font-size: 14px;
-  color: var(--faint);
+  /* Pure white, not --bone: the vignette darkens the corners where this sits. */
+  color: #fff;
   text-decoration: none;
   border-bottom: 1px dotted currentColor;
 }
 
 .menu-link:hover {
-  color: var(--dim);
+  border-bottom-style: solid;
 }
 
 /* ============================================================
