@@ -154,7 +154,18 @@ Playing never needs an account. To get on the leaderboard, choose **Sign in** on
    - answers after an Overload clock ran out
    - runs submitted faster than their answers add up to
    - runs submitted twice
-4. **Best score kept.** Only the best checked run per player and mode is stored.
+4. **Human check.** A script can read the ink from the page and click after a delay, which passes every check above. So `reviewRun` in the same file also looks at how the run was played:
+   - **fast:** the middle reaction time is faster than people play that mode
+   - **steady:** reaction times are too even
+   - **no-slow-tail:** reaction times lack the long slow tail people have (Overload)
+   - **flawless:** a long Overload run with no miss
+   - **random-mistakes:** wrong answers on mismatched words never pick the written word, which is the mistake people make
+
+   A suspicious run that would land in the top 10 is **held**: it stays off the board until approved. Suspicious runs further down are accepted, with their flags saved.
+5. **Limits and bans.** A player can start 60 ranked runs an hour. Banned players can still play, unranked.
+6. **Best score kept.** Only the best checked run per player and mode is stored.
+
+Review held runs and moderate players from the Supabase SQL editor: see [Fair play and moderation](docs/backend-setup.md#part-8-fair-play-and-moderation).
 
 If the bot check or the server doesn't answer within a few seconds of the countdown, the run still plays, just unranked.
 

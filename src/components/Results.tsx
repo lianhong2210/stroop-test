@@ -94,6 +94,13 @@ function Ranking({
         </p>
       );
     }
+    case "held":
+      return (
+        <p className="ranking">
+          <span>Leaderboard:</span> a top score. It&apos;s waiting for a quick
+          check and will show on the board once it&apos;s approved.
+        </p>
+      );
     case "rejected":
       return (
         <p className="ranking is-bad">

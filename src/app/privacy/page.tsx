@@ -57,7 +57,13 @@ export default function PrivacyPage() {
           <li>
             Runs you play while signed in: the mode, your answers and their
             timing, and your score. These are used to check that scores are
-            genuine.
+            genuine: an automatic check looks at how human the timing is, and
+            a top score that looks unusual may be held until someone reviews
+            it by hand.
+          </li>
+          <li>
+            If your account is barred from ranked play for breaking the fair
+            play rules, a note of that and the reason.
           </li>
           <li>Your best score and average reaction time for each mode.</li>
           <li>

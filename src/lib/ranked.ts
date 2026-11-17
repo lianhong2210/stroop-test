@@ -21,6 +21,8 @@ export type Submission =
       rank: number | null;
       best: { score: number; avgRtMs: number } | null;
     }
+  /** Passed the checks but waits for a manual look before reaching the board. */
+  | { status: "held"; score: number; avgRtMs: number }
   | { status: "rejected"; reason: string }
   | { status: "error"; reason: string };
 

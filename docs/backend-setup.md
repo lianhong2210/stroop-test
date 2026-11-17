@@ -233,6 +233,12 @@ This creates:
 
 To check, open **Table Editor** in the dashboard. The three tables should be listed, each marked RLS enabled.
 
+Later migrations add synced progress (`progress`) and fair-play tools (`banned_players`, review columns on `runs`, and an `admin` schema). Run the same command after pulling new migrations:
+
+```bash
+supabase db push --remote
+```
+
 ### 6.4 Deploy the Edge Functions
 ```bash
 supabase functions deploy start-run --no-verify-jwt
@@ -251,6 +257,8 @@ supabase secrets list
 ```
 
 **Redeploy both functions whenever `supabase/functions/_shared/stroop.ts` changes.** That file holds the rounds, timings and pass marks, and the server replays runs with it. If the server's copy and the game's copy differ, every ranked run is rejected.
+
+**Redeploy both functions after this change too:** the run check, rate limit and ban check live in them.
 
 ---
 
@@ -277,3 +285,55 @@ Once the app code is in place:
 | `start-run` reports `invalid-input-secret` | Wrong or missing secret in Supabase | Re-enter `TURNSTILE_SECRET_KEY` in Edge Function secrets |
 | Leaderboard empty and requests fail on the live site | Pages env vars missing, or not redeployed after adding them | Check Part 5, then redeploy |
 | Everything suddenly fails after a quiet week | Free Supabase project paused | Dashboard → **Restore project** |
+
+---
+
+## Part 8: Fair play and moderation
+
+Run these in the dashboard: **SQL Editor → New query**. The `admin` schema is only reachable there, never from the game or the API.
+
+### Runs waiting for review
+A run is **held** when it passes every check but doesn't look human, and it would land in the top 10. It stays off the leaderboard until you decide. The player sees "waiting for a quick check".
+
+```sql
+select * from admin.review_queue;
+```
+
+`flags` says what looked off (see the README's "How scores are kept honest"). The answers and their timing are in `public.runs.answers` if you want to look closer.
+
+Let it onto the board:
+
+```sql
+select admin.approve_run('<run_id>');
+```
+
+Or keep it off:
+
+```sql
+select admin.deny_run('<run_id>', 'timings look scripted');
+```
+
+### Players
+Use the player's current username (any case).
+
+| To | Run |
+| --- | --- |
+| Remove a score from one mode | `select admin.remove_score('Subject-12345', 'hard');` |
+| Remove all their scores | `select admin.remove_score('Subject-12345');` |
+| Ban from ranked play (also removes their scores and rejects held runs) | `select admin.ban('Subject-12345', 'scripted runs');` |
+| Lift a ban (scores are not restored) | `select admin.unban('Subject-12345');` |
+
+Banned players can still sign in and play, unranked.
+
+### Tuning the check
+The speed limits in `FAST_MEDIAN_MS` (`supabase/functions/_shared/stroop.ts`) are starting guesses. Once real players have played, compare them with:
+
+```sql
+select * from admin.mode_stats;
+```
+
+If `p5_avg_rt_ms` (the fastest 5% of accepted runs) is close to the limit for a mode, real players are reaching it and you'll see more of them in the review queue. Raise or lower the limit, then redeploy both functions.
+
+### Limits that apply to every player
+- 60 ranked runs per player per hour (`RUNS_PER_HOUR` in `start-run`). Past it, runs still play, unranked.
+- Only suspicious runs that would land in the top 10 are held (`REVIEW_TOP` in `finish-run`).

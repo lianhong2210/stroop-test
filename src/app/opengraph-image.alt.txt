@@ -1,1 +1,1 @@
-STROOP: name the colour of the ink, not the word. A horror Stroop-effect reaction game.
+STROOP: Name the colour of the ink, not the word. A horror Stroop-effect reaction game.

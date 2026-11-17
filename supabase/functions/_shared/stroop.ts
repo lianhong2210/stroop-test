@@ -212,7 +212,14 @@ const CLOCK_SLACK_MS = 1500;
 const MAX_ANSWERS = 2000;
 
 export type RunCheck =
-  | { ok: true; score: number; avgRtMs: number; rounds: number }
+  | {
+      ok: true;
+      score: number;
+      avgRtMs: number;
+      rounds: number;
+      /** How human the run looks. Doesn't reject; finish-run decides what to do. */
+      review: RunReview;
+    }
   | { ok: false; reason: string };
 
 /**
@@ -245,6 +252,7 @@ export function checkRun(
   let busyMs = 0; // minimum real time the answers take
   let score = 0;
   let rtSum = 0;
+  const played: PlayedRound[] = [];
 
   for (let i = 0; i < answers.length; i++) {
     const a = answers[i] as Partial<SubmittedAnswer> | null;
@@ -283,6 +291,12 @@ export function checkRun(
     const pause = correct ? PAUSE_AFTER_CORRECT_MS : PAUSE_AFTER_MISS_MS;
     clock += pause;
     busyMs += t + pause;
+    played.push({
+      rt: t,
+      outcome: p === null ? "timeout" : correct ? "correct" : "wrong",
+      congruent: round.word === round.ink,
+      pickedWord: p !== null && !correct && p === round.word,
+    });
   }
 
   if (wallMs < busyMs * 0.9 - 1000) {
@@ -294,5 +308,134 @@ export function checkRun(
     score,
     avgRtMs: score ? Math.round(rtSum / score) : 0,
     rounds: answers.length,
+    review: reviewRun(mode, played),
   };
+}
+
+/* ---------- does the run look human? ---------- */
+//
+// The checks above reject runs that are impossible. These look for runs that
+// are possible but unlike people: a script that reads the ink from the page
+// and clicks after a delay passes every hard check, but it rarely plays like
+// a person does. Each sign adds weight; finish-run holds a run for review
+// when the total reaches REVIEW_THRESHOLD and the run would make the top of
+// the board. Nothing here rejects a run on its own, so a real player who
+// trips a sign gets reviewed, not punished.
+//
+// The limits are starting points. Every accepted run keeps its answers, so
+// they can be tuned against real players later.
+
+export interface PlayedRound {
+  rt: number;
+  outcome: "correct" | "wrong" | "timeout";
+  /** Word and ink matched. */
+  congruent: boolean;
+  /** A wrong answer that picked the written (and spoken) word. */
+  pickedWord: boolean;
+}
+
+export interface RunReview {
+  /** Sum of the weights of the signs found. */
+  suspicion: number;
+  /** Short codes for the signs found, for the review queue. */
+  flags: string[];
+}
+
+/** Hold a run for review at this much suspicion. */
+export const REVIEW_THRESHOLD = 2;
+
+/**
+ * Median correct reaction time below which a run is "faster than people".
+ * Set above what typical players reach, so it mostly catches the very top:
+ * those are the runs worth a look, and a real player there just gets
+ * approved.
+ */
+export const FAST_MEDIAN_MS: Record<DifficultyId, number> = {
+  easy: 400,
+  normal: 520,
+  hard: 600,
+  overload: 780,
+};
+
+/** Human reaction times vary: spread / mean is rarely under this. */
+const MIN_HUMAN_CV = 0.1;
+/** Enough correct answers to judge the spread and shape of reaction times. */
+const MIN_FOR_SPREAD = 10;
+const MIN_FOR_SHAPE = 30;
+/** With this many, a missing slow tail is a strong sign rather than a hint. */
+const MANY_FOR_SHAPE = 60;
+/** Overload runs this long without a single miss are rare for people. */
+const FLAWLESS_MIN_ROUNDS = 60;
+/** Enough wrong answers on mismatched words to judge what kind of mistakes they are. */
+const MIN_ERRORS_FOR_KIND = 8;
+
+function median(xs: number[]): number {
+  const s = xs.slice().sort((a, b) => a - b);
+  const m = s.length >> 1;
+  return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2;
+}
+
+function meanSd(xs: number[]): { mean: number; sd: number } {
+  const mean = xs.reduce((a, b) => a + b, 0) / xs.length;
+  const sd = Math.sqrt(xs.reduce((a, x) => a + (x - mean) ** 2, 0) / (xs.length - 1));
+  return { mean, sd };
+}
+
+/** Sample skewness: human reaction times have a long slow tail (positive). */
+function skewness(xs: number[]): number {
+  const { mean, sd } = meanSd(xs);
+  if (sd === 0) return 0;
+  const n = xs.length;
+  const m3 = xs.reduce((a, x) => a + ((x - mean) / sd) ** 3, 0);
+  return (n / ((n - 1) * (n - 2))) * m3;
+}
+
+export function reviewRun(mode: DifficultyId, played: PlayedRound[]): RunReview {
+  const flags: string[] = [];
+  let suspicion = 0;
+  const add = (flag: string, weight: number) => {
+    flags.push(flag);
+    suspicion += weight;
+  };
+
+  const correctRts = played.filter((r) => r.outcome === "correct").map((r) => r.rt);
+
+  // Faster than people play this mode, judged on the middle answer so one
+  // lucky click doesn't count.
+  if (correctRts.length >= MIN_FOR_SPREAD && median(correctRts) < FAST_MEDIAN_MS[mode]) {
+    add("fast", 2);
+  }
+
+  if (correctRts.length >= MIN_FOR_SPREAD) {
+    const { mean, sd } = meanSd(correctRts);
+    // A fixed or narrow delay: people are never this even.
+    if (mean > 0 && sd / mean < MIN_HUMAN_CV) add("steady", 2);
+  }
+
+  // People's reaction times bunch up with a long slow tail. Delays drawn
+  // evenly or symmetrically from a range don't have one.
+  if (correctRts.length >= MANY_FOR_SHAPE && skewness(correctRts) < 0.2) {
+    add("no-slow-tail", 2);
+  } else if (correctRts.length >= MIN_FOR_SHAPE && skewness(correctRts) < 0) {
+    add("no-slow-tail", 1);
+  }
+
+  // A long Overload run with no miss at all.
+  const misses = played.filter((r) => r.outcome !== "correct").length;
+  if (mode === "overload" && played.length >= FLAWLESS_MIN_ROUNDS && misses === 0) {
+    add("flawless", 1);
+  }
+
+  // The Stroop effect shows in the mistakes: when people get a mismatched
+  // word wrong, they usually pick the word they read and heard. Mistakes
+  // that never pick the word look like they were thrown in on purpose.
+  const wrongOnMismatch = played.filter((r) => r.outcome === "wrong" && !r.congruent);
+  if (
+    wrongOnMismatch.length >= MIN_ERRORS_FOR_KIND &&
+    !wrongOnMismatch.some((r) => r.pickedWord)
+  ) {
+    add("random-mistakes", 1);
+  }
+
+  return { suspicion, flags };
 }

@@ -60,7 +60,8 @@ export default function TermsPage() {
           Don&apos;t use bots, scripts, auto-clickers or other automation,
           don&apos;t tamper with the game, its requests or its servers, and
           don&apos;t try to get around the bot check or the score checks.
-          Runs that fail those checks aren&apos;t counted. Scores that appear
+          Runs that fail those checks aren&apos;t counted. A top score may be
+          held for a manual check before it appears. Scores that appear
           to have been obtained unfairly may be removed, and accounts behind
           them may be suspended or deleted.
         </p>

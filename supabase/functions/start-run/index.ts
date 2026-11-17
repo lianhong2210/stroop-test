@@ -2,16 +2,22 @@
 //
 // POST { mode: "easy" | "normal" | "hard" | "overload", token: string }
 // → 200 { runId, seed }
-// → 400 / 401 / 403 { error }
+// → 400 / 401 / 403 / 429 { error }
 //
 // The seed decides every round of the run, so the server can replay it later
 // in finish-run and score the answers itself.
+//
+// Banned players and players over the hourly limit get no run; the game then
+// plays unranked. The limit stops a script from playing thousands of runs
+// until one happens to look human.
 import { adminClient, corsHeaders, json, readJson, requireUser } from "../_shared/http.ts";
 import { isDifficultyId } from "../_shared/stroop.ts";
 
 const SITEVERIFY = "https://challenges.cloudflare.com/turnstile/v0/siteverify";
 /** Must match the `action` the game sets on its Turnstile widget. */
 const TURNSTILE_ACTION = "start-run";
+/** Ranked runs one player may start per hour. A real player rarely gets near it. */
+const RUNS_PER_HOUR = 60;
 
 async function verifyTurnstile(token: string, ip: string | null): Promise<string | null> {
   const secret = Deno.env.get("TURNSTILE_SECRET_KEY");
@@ -46,6 +52,24 @@ Deno.serve(async (req) => {
   if (!isDifficultyId(mode)) return json({ error: "unknown mode" }, 400);
   if (typeof token !== "string" || !token || token.length > 4096) {
     return json({ error: "missing bot check token" }, 400);
+  }
+
+  // Cheap checks before asking Cloudflare.
+  const [{ data: ban, error: banError }, { count, error: countError }] = await Promise.all([
+    admin.from("banned_players").select("user_id").eq("user_id", user.id).maybeSingle(),
+    admin
+      .from("runs")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", user.id)
+      .gte("started_at", new Date(Date.now() - 60 * 60 * 1000).toISOString()),
+  ]);
+  if (banError || countError) {
+    console.error("start-run checks failed", banError ?? countError);
+    return json({ error: "could not start the run" }, 500);
+  }
+  if (ban) return json({ error: "ranked play is off for this account" }, 403);
+  if ((count ?? 0) >= RUNS_PER_HOUR) {
+    return json({ error: "too many ranked runs this hour; try again later" }, 429);
   }
 
   const ip =
