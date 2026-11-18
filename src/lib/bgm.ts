@@ -5,11 +5,14 @@
  * synthesised live with Web Audio:
  *
  *  - menu: detuned drone, broken music box, scattered events
- *          (heartbeat, metal scrape, distant clank, breath, sub boom)
+ *          (heartbeat, bowed-metal wail, distant clank, breath, sub boom)
  *  - pass: a warm-but-wrong lullaby over a slow major pad
  *  - fail: a collapsing chord, then a dissonant pad and a slow heartbeat
  *
  * Only one scene plays at a time; switching crossfades.
+ *
+ * No scraping white-noise sweeps: they read as TV static. The breath is the
+ * only noise-based sound left.
  */
 
 import { audio } from "./sfx";
@@ -280,24 +283,38 @@ function clank(r: Rig, t: number) {
   }
 }
 
-function scrape(r: Rig, t: number) {
-  const { c, verb, noise, track, panner } = r;
-  const dur = rand(1.4, 2.6);
-  const src = track(c.createBufferSource());
-  src.buffer = noise;
-  const bp = c.createBiquadFilter();
-  bp.type = "bandpass";
-  bp.Q.value = 22;
-  const up = Math.random() < 0.5;
-  bp.frequency.setValueAtTime(up ? 700 : 2600, t);
-  bp.frequency.exponentialRampToValueAtTime(up ? 2400 : 650, t + dur);
+/**
+ * A bowed-metal wail, like a musical saw: one wavering note gliding up or
+ * down, far off in the reverb.
+ */
+function wail(r: Rig, t: number) {
+  const { c, verb, track, panner } = r;
+  const dur = rand(2.2, 3.6);
+  const from = rand(330, 520);
+  const to = from * (Math.random() < 0.5 ? rand(1.25, 1.5) : rand(0.6, 0.8));
+  const o = track(c.createOscillator());
+  o.type = "triangle";
+  o.frequency.setValueAtTime(from, t);
+  o.frequency.exponentialRampToValueAtTime(to, t + dur);
+  // A slow, widening vibrato: the hand on the saw.
+  const vib = track(c.createOscillator());
+  vib.frequency.value = rand(4.5, 6);
+  const vibAmt = c.createGain();
+  vibAmt.gain.setValueAtTime(0, t);
+  vibAmt.gain.linearRampToValueAtTime(18, t + dur);
+  vib.connect(vibAmt).connect(o.detune);
+  const lp = c.createBiquadFilter();
+  lp.type = "lowpass";
+  lp.frequency.value = 1400;
   const g = c.createGain();
   g.gain.setValueAtTime(0.0001, t);
-  g.gain.exponentialRampToValueAtTime(0.5, t + dur * 0.4);
+  g.gain.exponentialRampToValueAtTime(0.045, t + dur * 0.45);
   g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-  src.connect(bp).connect(g).connect(panner(rand(-0.8, 0.8))).connect(verb);
-  src.start(t);
-  src.stop(t + dur);
+  o.connect(lp).connect(g).connect(panner(rand(-0.8, 0.8))).connect(verb);
+  o.start(t);
+  vib.start(t);
+  o.stop(t + dur + 0.05);
+  vib.stop(t + dur + 0.05);
 }
 
 function breath(r: Rig, t: number) {
@@ -400,8 +417,8 @@ function menuScene(): Running | null {
   };
   const events = [
     heartbeat,
-    () => scrape(r, c.currentTime + 0.05),
-    () => scrape(r, c.currentTime + 0.05),
+    () => wail(r, c.currentTime + 0.05),
+    () => wail(r, c.currentTime + 0.05),
     () => clank(r, c.currentTime + 0.05),
     () => clank(r, c.currentTime + 0.05),
     () => breath(r, c.currentTime + 0.05),
@@ -499,7 +516,7 @@ function failScene(): Running | null {
     };
     pulse();
     const creak = () => {
-      if (Math.random() < 0.5) scrape(r, c.currentTime + 0.05);
+      if (Math.random() < 0.5) wail(r, c.currentTime + 0.05);
       else breath(r, c.currentTime + 0.05);
       later(creak, rand(7, 13) * 1000);
     };
