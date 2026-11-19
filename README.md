@@ -214,6 +214,7 @@ npm start
 docs/
   banner.jpg           README header image
   backend-setup.md     Google, Supabase and Cloudflare setup
+  seo-guide.md         how search works, what this site does for it, what to do next
 supabase/
   config.toml          Edge Function settings
   migrations/          tables, access rules, leaderboard functions
@@ -224,6 +225,8 @@ supabase/
     finish-run/        replay, score and keep the best
 public/
   icons/               192/512 px and maskable app icons
+  _headers             Cloudflare headers: caching, HTTPS, hide the pages.dev copy
+  llms.txt             plain-text summary for AI assistants
 src/
   app/
     layout.tsx         fonts, page metadata and structured data (search engines)
@@ -242,6 +245,7 @@ src/
     twitter-image.jpg     same image for X
     robots.ts          builds robots.txt
     sitemap.ts         builds sitemap.xml (add new pages here)
+    not-found.tsx      the 404 page
   components/
     StroopGame.tsx     screen flow, music, unlocks
     SoundGate.tsx      opening "turn on sound" screen

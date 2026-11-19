@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
-import { pageMetadata } from "@/lib/pageMetadata";
+import { breadcrumbJsonLd, pageMetadata } from "@/lib/pageMetadata";
 import Link from "next/link";
-import { CONTACT_EMAIL } from "@/lib/site";
+import { CONTACT_EMAIL, formatPageDate, PAGE_UPDATED } from "@/lib/site";
+import { JsonLd } from "@/components/JsonLd";
 
 export const metadata: Metadata = pageMetadata(
   "Terms",
@@ -9,12 +10,13 @@ export const metadata: Metadata = pageMetadata(
   "/terms",
 );
 
-const UPDATED = "16 November 2026";
+const UPDATED = formatPageDate(PAGE_UPDATED.terms);
 
 export default function TermsPage() {
   return (
     <main className="shell policy-shell">
       <div className="room-light" aria-hidden />
+      <JsonLd data={breadcrumbJsonLd("Terms of service", "/terms")} />
       <article className="paper policy">
         <h1>Terms of service</h1>
         <p className="paper-meta">

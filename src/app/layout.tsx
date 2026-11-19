@@ -59,38 +59,6 @@ export const metadata: Metadata = {
   },
 };
 
-// Tells search engines the site's name (shown above the result) and that
-// the home page is a free browser game.
-const STRUCTURED_DATA = {
-  "@context": "https://schema.org",
-  "@graph": [
-    {
-      "@type": "WebSite",
-      "@id": `${SITE_URL}/#website`,
-      name: SITE_NAME,
-      url: SITE_URL,
-      inLanguage: "en",
-    },
-    {
-      "@type": ["VideoGame", "WebApplication"],
-      "@id": `${SITE_URL}/#game`,
-      name: SITE_NAME,
-      url: SITE_URL,
-      description: SITE_DESCRIPTION,
-      image: `${SITE_URL}/opengraph-image.jpg`,
-      inLanguage: "en",
-      genre: ["Horror", "Reaction", "Puzzle"],
-      gamePlatform: "Web browser",
-      applicationCategory: "GameApplication",
-      operatingSystem: "Any",
-      isAccessibleForFree: true,
-      playMode: "SinglePlayer",
-      offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
-      isPartOf: { "@id": `${SITE_URL}/#website` },
-    },
-  ],
-};
-
 export const viewport: Viewport = {
   themeColor: "#080807",
   width: "device-width",
@@ -108,11 +76,6 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: SOUND_CHOICE_PRELOAD_SCRIPT }} />
-        {/* Structured data naming the site and app (used by Google). */}
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(STRUCTURED_DATA) }}
-        />
       </head>
       <body>{children}</body>
     </html>

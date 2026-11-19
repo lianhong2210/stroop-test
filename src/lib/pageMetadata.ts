@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { SITE_NAME } from "./site";
+import { SITE_NAME, SITE_URL } from "./site";
 
 /**
  * Metadata for a page other than the home page: its title (the layout adds
@@ -30,5 +30,16 @@ export function pageMetadata(title: string, description: string, path: string): 
       images: [PREVIEW_IMAGE],
     },
     twitter: { card: "summary_large_image", title: full, description, images: [PREVIEW_IMAGE] },
+  };
+}
+
+/** Home › page trail, shown by Google in place of the bare URL. */
+export function breadcrumbJsonLd(name: string, path: string) {
+  return {
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: SITE_NAME, item: SITE_URL },
+      { "@type": "ListItem", position: 2, name, item: `${SITE_URL}${path}` },
+    ],
   };
 }

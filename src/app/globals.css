@@ -456,6 +456,18 @@ html[data-sound="known"] .gate {
   letter-spacing: 0.01em;
 }
 
+.subtitle {
+  margin: 12px 0 0;
+  font-size: 14px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--bone);
+}
+
+.subtitle + .tagline {
+  margin-top: 6px;
+}
+
 .tagline {
   margin: 14px 0 0;
   font-size: 18px;
@@ -1699,6 +1711,15 @@ html[data-sound="known"] .gate {
 
 .policy a:not(.act) {
   color: inherit;
+}
+
+.policy .faq h3 {
+  margin: 14px 0 2px;
+  font-family: var(--font-type);
+  font-size: 15px;
+  letter-spacing: 0;
+  text-transform: none;
+  font-weight: 700;
 }
 
 .policy kbd {

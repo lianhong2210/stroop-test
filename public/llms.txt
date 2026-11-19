@@ -1,0 +1,18 @@
+# Stroop
+
+> Stroop is a free online Stroop effect test played as a horror game, at https://stroop.lianhonglim.my. A colour word such as RED appears in a different ink, and the player must name the ink, not the word, while a voice reads the word aloud to throw them off. It runs in any modern browser on computers and phones, with no download or account needed.
+
+Key facts:
+
+- Free, no ads, no download. Playing as a guest needs no account; progress is saved in the browser.
+- Modes: Easy (3 colours, 10 words, 6 seconds each, pass 7/10), Normal (6 colours, 20 words, 3 seconds each, pass 15/20), Hard (9 colours, 20 words, 3 seconds each, pass 20/20). Each mode unlocks the next. There is a hidden mode after Hard.
+- Controls: click or tap the answer, or press keys 1 to 9; Esc quits a run.
+- Optional Google sign-in puts scores on a leaderboard showing the top five per mode. Ranked runs are checked by the server.
+- It is a game based on the Stroop effect (J. Ridley Stroop, 1935), not a medical or psychological assessment.
+
+## Pages
+
+- [Play Stroop](https://stroop.lianhonglim.my/): the game
+- [How to play](https://stroop.lianhonglim.my/how-to-play): what the Stroop effect is, rules, modes, scoring, tips and FAQ
+- [Privacy policy](https://stroop.lianhonglim.my/privacy)
+- [Terms of service](https://stroop.lianhonglim.my/terms)

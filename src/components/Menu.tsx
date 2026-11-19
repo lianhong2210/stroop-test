@@ -77,6 +77,7 @@ export function Menu({
           <span style={{ color: COLORS.red.hex }}>RO</span>
           <span style={{ color: COLORS.yellow.hex }}>OP</span>
         </h1>
+        <p className="subtitle">A free Stroop effect test, played as a horror game.</p>
         <p className="tagline">
           Name the colour of the ink. Not the word. Not what you hear.
         </p>

@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
-import { pageMetadata } from "@/lib/pageMetadata";
 import Link from "next/link";
+import { JsonLd } from "@/components/JsonLd";
 import { DIFFICULTIES } from "@/lib/difficulty";
+import { breadcrumbJsonLd, pageMetadata } from "@/lib/pageMetadata";
+import { PAGE_UPDATED, SITE_URL } from "@/lib/site";
 
 export const metadata: Metadata = pageMetadata(
   "How to play the Stroop effect test",
@@ -14,12 +16,68 @@ const secs = (ms: number) => `${ms / 1000} second${ms === 1000 ? "" : "s"}`;
 /** The visible modes. The hidden one after Hard stays a secret here too. */
 const MODES = Object.values(DIFFICULTIES).filter((d) => !d.hidden);
 
+/**
+ * Questions people search for. Shown on the page and repeated as FAQPage
+ * structured data; the two must say the same thing.
+ */
+const FAQ: { q: string; a: string }[] = [
+  {
+    q: "Is Stroop free?",
+    a: "Yes. It's free to play in your browser, with no download and no ads. You don't need an account unless you want your scores on the leaderboard.",
+  },
+  {
+    q: "Can I play on my phone?",
+    a: "Yes. Stroop works in the browser on phones, tablets and computers. Tap the answers on a touch screen, or use keys 1 to 9 on a keyboard.",
+  },
+  {
+    q: "Do I need sound?",
+    a: "No, but it's better with it. A voice reads each word aloud to pull you towards the wrong answer. You can play without sound, or switch the voice off under Voice in the menu.",
+  },
+  {
+    q: "Is this a real Stroop test?",
+    a: "It uses the same colour-word conflict as the classic Stroop experiment, with time limits, a voice and a horror setting added. It's a game, not a clinical or psychological assessment, and the score says nothing about your health.",
+  },
+  {
+    q: "Why is the Stroop test so hard?",
+    a: "Because reading is automatic for practised readers. The word is understood before you decide to read it, so naming the ink means overriding an answer your brain has already produced.",
+  },
+  {
+    q: "How do I get on the leaderboard?",
+    a: "Sign in with Google from the menu. Every run you play while signed in is checked by the server, and your best score in each mode counts. The board shows the top five per mode.",
+  },
+];
+
+const STRUCTURED_DATA = {
+  "@graph": [
+    {
+      "@type": "WebPage",
+      "@id": `${SITE_URL}/how-to-play`,
+      url: `${SITE_URL}/how-to-play`,
+      name: "How to play the Stroop effect test",
+      inLanguage: "en",
+      dateModified: PAGE_UPDATED.howToPlay,
+      isPartOf: { "@id": `${SITE_URL}/#website` },
+      about: { "@id": `${SITE_URL}/#game` },
+      breadcrumb: breadcrumbJsonLd("How to play", "/how-to-play"),
+    },
+    {
+      "@type": "FAQPage",
+      mainEntity: FAQ.map(({ q, a }) => ({
+        "@type": "Question",
+        name: q,
+        acceptedAnswer: { "@type": "Answer", text: a },
+      })),
+    },
+  ],
+};
+
 export default function HowToPlayPage() {
   return (
     <main className="shell policy-shell">
       <div className="room-light" aria-hidden />
+      <JsonLd data={STRUCTURED_DATA} />
       <article className="paper policy">
-        <h1>How to play</h1>
+        <h1>How to play Stroop</h1>
         <p className="paper-meta">Stroop · the Stroop effect test, played as a horror game</p>
 
         <hr />
@@ -106,6 +164,14 @@ export default function HowToPlayPage() {
           <li>Don&apos;t rush after a mistake. Errors cluster when you try to win time back.</li>
           <li>Take a break between runs. Holding back reading gets harder when you&apos;re tired.</li>
         </ul>
+
+        <h2>Questions</h2>
+        {FAQ.map(({ q, a }) => (
+          <div key={q} className="faq">
+            <h3>{q}</h3>
+            <p>{a}</p>
+          </div>
+        ))}
 
         <h2>Good to know</h2>
         <p>
